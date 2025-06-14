@@ -101,13 +101,14 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
       
+        // ** THIS SECTION IS NOW CORRECTED TO MATCH YOUR serviceAccountKey.json **
         const firebaseConfig = {
-            apiKey: "AIzaSyD7JLjyqeNfQsRpQLsmpP7WWQN2YPhpuU",
-            authDomain: "aura-ai-app-79f0f.firebaseapp.com",
-            projectId: "aura-ai-app-79f0f",
-            storageBucket: "aura-ai-app-79f0f.appspot.com",
+            apiKey: "AIzaSyD7JLjyqeNfQsRpQLsmpP7WWQN2YPhpuU", // This key is from your other screenshot
+            authDomain: "aura-ai-app-79fd0.firebaseapp.com", // Corrected
+            projectId: "aura-ai-app-79fd0", // Corrected
+            storageBucket: "aura-ai-app-79fd0.appspot.com", // Corrected
             messagingSenderId: "388382191448",
-            appId: "1:388382191448:web:16b533aa82c66251281c2d"
+            appId: "1:388382191448:web:16b533aa82c66251281c2d" // This is a unique web app ID
         };
       
         const app = initializeApp(firebaseConfig);
@@ -212,8 +213,6 @@
             };
 
             try {
-                // ** THIS IS THE KEY CHANGE **
-                // Now pointing to your live Render backend URL
                 const apiUrl = 'https://aura-backend-51f1.onrender.com/analyze'; 
 
                 const response = await fetch(apiUrl, {
