@@ -8,526 +8,313 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        .step-active {
-            border-color: #3b82f6;
-            color: #3b82f6;
-        }
-        .loader {
-            border-top-color: #3498db;
-            -webkit-animation: spin 1s linear infinite;
-            animation: spin 1s linear infinite;
-        }
-        @-webkit-keyframes spin {
-            0% { -webkit-transform: rotate(0deg); }
-            100% { -webkit-transform: rotate(360deg); }
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        body { font-family: 'Inter', sans-serif; }
+        .screen { transition: opacity 0.3s ease-in-out; }
+        .nav-active { color: #2563EB; border-bottom-width: 2px; border-color: #2563EB; }
+        .modal { z-index: 50; }
+        .loader { border-top-color: #3498db; -webkit-animation: spin 1s linear infinite; animation: spin 1s linear infinite; }
+        @-webkit-keyframes spin { 0% { -webkit-transform: rotate(0deg); } 100% { -webkit-transform: rotate(360deg); } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-gray-100 text-gray-800">
 
-    <div id="app" class="max-w-4xl mx-auto p-4 md:p-8">
-
-        <!-- Header -->
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-gray-900">Aura</h1>
-            <p class="text-lg text-gray-600">Your confidential relationship advisor.</p>
+    <div id="app-container" class="max-w-4xl mx-auto p-4 md:p-8">
+        
+        <!-- Main Header -->
+        <header id="main-header" class="hidden items-center justify-between mb-8">
+            <div class="flex items-center gap-6">
+                 <h1 class="text-2xl font-bold text-gray-900">Aura</h1>
+                 <nav id="main-nav" class="flex items-center gap-6 border-b border-gray-200">
+                    <button id="nav-dashboard-btn" class="font-semibold text-gray-500 hover:text-blue-600 py-3">Dashboard</button>
+                    <button id="nav-new-analysis-btn" class="font-semibold text-gray-500 hover:text-blue-600 py-3">New Analysis</button>
+                 </nav>
+            </div>
+            <div id="auth-actions">
+                <button id="login-signup-btn" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition">Login / Sign Up</button>
+                <button id="logout-btn" class="hidden bg-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-600 transition">Logout</button>
+            </div>
         </header>
 
-        <!-- Stepper -->
-        <div id="stepper" class="flex items-center justify-center mb-8">
-            <div id="step-1" class="step step-active flex items-center">
-                <div class="rounded-full h-8 w-8 flex items-center justify-center border-2 border-current">1</div>
-                <span class="ml-2">Welcome</span>
-            </div>
-            <div class="flex-auto border-t-2 border-gray-300 mx-4"></div>
-            <div id="step-2" class="step flex items-center text-gray-500">
-                <div class="rounded-full h-8 w-8 flex items-center justify-center border-2 border-current">2</div>
-                <span class="ml-2">Your Story</span>
-            </div>
-            <div class="flex-auto border-t-2 border-gray-300 mx-4"></div>
-            <div id="step-3" class="step flex items-center text-gray-500">
-                <div class="rounded-full h-8 w-8 flex items-center justify-center border-2 border-current">3</div>
-                <span class="ml-2">Analysis</span>
-            </div>
+        <!-- Initial Loading State -->
+        <div id="initial-loading-screen" class="text-center py-20">
+            <p class="text-lg text-gray-600">Initializing Aura...</p>
         </div>
 
-        <!-- Onboarding Screen -->
-        <div id="onboarding-screen" class="bg-white p-8 rounded-lg shadow-md">
-            <h2 class="text-2xl font-semibold mb-4 text-center">A private, secure space to reflect on your relationship.</h2>
-            <p class="mb-6 text-gray-600 text-center">Aura is designed to provide you with thoughtful, AI-powered guidance. Your privacy and trust are our highest priorities.</p>
-            
-            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md mb-6">
-                <h3 class="font-semibold text-blue-800">Our Privacy Commitment:</h3>
-                <ul class="list-disc list-inside mt-2 text-blue-700 space-y-1">
-                    <li>We do not sell your personal data to third parties.</li>
-                    <li>All personal details in your narratives and uploaded media are automatically and irreversibly anonymized before analysis.</li>
-                    <li>You have the right to permanently delete your account and all associated data at any time.</li>
-                </ul>
+        <!-- Main App Content (hidden until initialized) -->
+        <div id="main-content" class="hidden">
+            <div id="personal-dashboard-screen" class="screen">
+                <div class="flex justify-between items-center mb-6"><h2 class="text-3xl font-bold">Your Report History</h2><button id="go-to-analysis-btn" class="bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg">New Analysis +</button></div>
+                <div id="reports-list-container" class="space-y-4"></div>
             </div>
-
-            <h3 class="text-lg font-semibold mb-2">Informed Consent</h3>
-            <p class="text-sm text-gray-600 mb-4">To provide a thorough analysis, we need your consent to process the information you provide. Please review and agree to the following:</p>
-
-            <form id="consent-form">
-                <div class="space-y-4">
-                    <label for="consent-narrative" class="flex items-start p-4 border rounded-lg hover:bg-gray-100 cursor-pointer">
-                        <input type="checkbox" id="consent-narrative" name="consent" value="narrative" class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1">
-                        <div class="ml-3 text-sm">
-                            <span class="font-medium text-gray-900">Narrative Analysis</span>
-                            <p class="text-gray-500">I consent to the analysis of my written narrative and the contextual information I provide.</p>
-                        </div>
-                    </label>
-                    <label for="consent-text" class="flex items-start p-4 border rounded-lg hover:bg-gray-100 cursor-pointer opacity-50">
-                        <input type="checkbox" id="consent-text" name="consent" value="text" class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1" disabled>
-                         <div class="ml-3 text-sm">
-                            <span class="font-medium text-gray-900">Text Message Analysis (Coming Soon)</span>
-                            <p class="text-gray-500">I consent to the analysis of uploaded text message screenshots. I understand all names, phone numbers, and other personal identifiers will be automatically redacted.</p>
-                        </div>
-                    </label>
-                    <label for="consent-media" class="flex items-start p-4 border rounded-lg hover:bg-gray-100 cursor-pointer opacity-50">
-                        <input type="checkbox" id="consent-media" name="consent" value="media" class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1" disabled>
-                        <div class="ml-3 text-sm">
-                            <span class="font-medium text-gray-900">Photo & Video Analysis (Coming Soon)</span>
-                            <p class="text-gray-500">I consent to the analysis of uploaded photos and videos. I understand all faces and other identifying features will be automatically blurred.</p>
-                        </div>
-                    </label>
+            <div id="new-analysis-screen" class="screen hidden">
+                <div class="bg-white p-8 rounded-lg shadow-md">
+                     <h2 class="text-2xl font-semibold mb-6">Create a New Relationship Analysis</h2>
+                     <div class="mb-8"><label for="narrative" class="block text-lg font-medium">Your Narrative</label><textarea id="narrative" rows="8" class="w-full p-4 border rounded-lg mt-2"></textarea></div>
+                     <div class="mb-6"><label for="core-question" class="block text-lg font-medium">The Core Question</label><input type="text" id="core-question" class="w-full p-3 border rounded-lg mt-2"></div>
+                     <button type="button" id="analyze-btn" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg flex items-center justify-center">
+                        <span id="analyze-btn-text">Analyze My Relationship</span>
+                        <div id="analyze-spinner" class="loader ease-linear rounded-full border-4 h-6 w-6 ml-3 hidden"></div>
+                     </button>
                 </div>
-                <div id="consent-error" class="text-red-500 text-sm mt-4 hidden">Please consent to Narrative Analysis to continue.</div>
-                <button type="button" id="start-btn" class="w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mt-8 transition duration-150 ease-in-out">
-                    Start My Reflection
-                </button>
-            </form>
-        </div>
-
-        <!-- Data Input Dashboard -->
-        <div id="dashboard-screen" class="hidden">
-            <div class="bg-white p-8 rounded-lg shadow-md">
-                <h2 class="text-2xl font-semibold mb-6">Tell Us Your Story</h2>
-
-                <!-- Module 1: The Narrative -->
-                <div class="mb-8">
-                    <label for="narrative" class="block text-lg font-medium text-gray-700 mb-2">Module 1: Your Narrative</label>
-                    <p class="text-sm text-gray-500 mb-4">Please describe the situation that has led you to seek advice today. What are the key events and feelings involved?</p>
-                    <textarea id="narrative" rows="8" class="w-full p-4 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Start writing here..."></textarea>
-                    <details class="mt-2 text-sm">
-                        <summary class="cursor-pointer text-blue-600 hover:text-blue-800">Optional guiding questions</summary>
-                        <ul class="list-disc list-inside mt-2 text-gray-600 bg-gray-50 p-4 rounded-md">
-                            <li>What were the core issues that you believe caused the initial breakup or conflict?</li>
-                            <li>What are your biggest fears or worries about the relationship right now?</li>
-                            <li>What do you need to see or hear from your partner to feel understood and secure?</li>
-                        </ul>
-                    </details>
-                </div>
-
-                <!-- Module 2: Contextual Factors -->
-                <div class="mb-8">
-                     <h3 class="block text-lg font-medium text-gray-700 mb-2">Module 2: Contextual Factors</h3>
-                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="relationship-status" class="block text-sm font-medium text-gray-700">Relationship Status</label>
-                            <select id="relationship-status" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                                <option>Dating</option>
-                                <option>Engaged</option>
-                                <option>Married</option>
-                                <option>Separated/Considering Reconciliation</option>
-                                <option>Long-Distance</option>
-                                <option>Broken Up</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Primary Challenges (select multiple)</label>
-                             <div id="primary-challenges" class="mt-2 space-y-2">
-                                <label class="flex items-center"><input type="checkbox" value="Communication Breakdown" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2"> Communication Breakdown</label>
-                                <label class="flex items-center"><input type="checkbox" value="Infidelity/Trust Issues" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2"> Infidelity/Trust Issues</label>
-                                <label class="flex items-center"><input type="checkbox" value="Financial Stress" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2"> Financial Stress</label>
-                                <label class="flex items-center"><input type="checkbox" value="Family/In-law Conflict" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2"> Family/In-law Conflict</label>
-                                 <label class="flex items-center"><input type="checkbox" value="Mismatched Life Goals" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2"> Mismatched Life Goals</label>
-                                 <label class="flex items-center"><input type="checkbox" value="Intimacy Issues" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2"> Intimacy Issues</label>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Age Gap</label>
-                            <div class="flex items-center space-x-2 mt-1">
-                                <input type="number" id="your-age" placeholder="Your Age" class="w-full p-2 border border-gray-300 rounded-md">
-                                <input type="number" id="partner-age" placeholder="Partner's Age" class="w-full p-2 border border-gray-300 rounded-md">
-                            </div>
-                        </div>
-                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Family Structure</label>
-                            <div class="mt-2 space-y-2">
-                                 <label class="flex items-center"><input type="checkbox" id="children-involved" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2"> Are children involved?</label>
-                                <div id="children-details" class="hidden pl-6 mt-2 space-y-2">
-                                    <label class="flex items-center"><input type="radio" name="children-from" value="current" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500 mr-2"> From current relationship</label>
-                                    <label class="flex items-center"><input type="radio" name="children-from" value="previous" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500 mr-2"> From a previous relationship</label>
-                                     <label class="flex items-center"><input type="radio" name="children-from" value="both" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500 mr-2"> Both</label>
-                                </div>
-                                 <label class="flex items-center"><input type="checkbox" id="co-parenting" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2"> Are you currently co-parenting with an ex-partner?</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Module 3: The Evidence Locker -->
-                <div class="mb-8 opacity-50">
-                     <h3 class="block text-lg font-medium text-gray-700 mb-2">Module 3: The Evidence Locker (Coming Soon)</h3>
-                     <p class="text-sm text-gray-500 mb-4">Upload relevant text message screenshots, photos, or videos. All uploads are anonymized for your privacy.</p>
-                     <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                        <div class="space-y-1 text-center">
-                            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                            </svg>
-                            <div class="flex text-sm text-gray-600">
-                                <label class="relative cursor-not-allowed bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-                                    <span>Upload a file</span>
-                                    <input type="file" class="sr-only" multiple disabled>
-                                </label>
-                                <p class="pl-1">or drag and drop</p>
-                            </div>
-                            <p class="text-xs text-gray-500">PNG, JPG, MP4, MOV up to 500MB</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Module 4: The Core Question -->
-                <div class="mb-6">
-                    <label for="core-question" class="block text-lg font-medium text-gray-700 mb-2">Module 4: The Core Question</label>
-                     <p class="text-sm text-gray-500 mb-4">With all of this context, what is the primary question you would like Aura to help you with?</p>
-                    <input type="text" id="core-question" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., How can we rebuild trust after this conflict?">
-                </div>
-                 <div id="form-error" class="text-red-500 text-sm my-4 hidden text-center">Please fill out the Narrative and Core Question fields.</div>
-                 <button type="button" id="analyze-btn" class="w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out flex items-center justify-center">
-                    <span id="analyze-btn-text">Analyze My Relationship</span>
-                    <div id="analyze-spinner" class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 ml-3 hidden"></div>
-                </button>
+            </div>
+            <div id="report-display-screen" class="screen hidden">
+                 <div class="bg-white p-8 rounded-lg shadow-md">
+                     <div id="upgrade-cta-container" class="hidden bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6 rounded-md">
+                         <p class="font-bold">Enjoying your analysis?</p>
+                         <p>This report is temporary. <a href="#" id="upgrade-link" class="underline font-semibold">Create a free account</a> to save this report and view your history.</p>
+                     </div>
+                     <div id="report-content-container"></div>
+                 </div>
             </div>
         </div>
-        
-        <!-- Report Screen -->
-        <div id="report-screen" class="hidden bg-white p-8 rounded-lg shadow-md">
-            <h2 class="text-3xl font-bold text-center mb-2">Your Confidential Relationship Analysis</h2>
-            <p class="text-center text-gray-500 mb-8">Generated for Moses</p>
-
-            <!-- Chapter 1: Situation at a Glance -->
-            <div class="mb-8 pb-4 border-b">
-                <h3 class="text-xl font-semibold mb-4">Chapter 1: Your Situation at a Glance</h3>
-                <p id="report-summary" class="text-gray-700 bg-gray-50 p-4 rounded-lg whitespace-pre-wrap"></p>
-            </div>
-
-            <!-- Chapter 2: The Emotional Landscape -->
-            <div class="mb-8 pb-4 border-b">
-                <h3 class="text-xl font-semibold mb-4">Chapter 2: The Emotional Landscape</h3>
-                 <div class="text-center mb-4">
-                    <p class="mb-2 text-gray-600">Overall Emotional Tone (Based on Narrative)</p>
-                    <div class="max-w-sm mx-auto">
-                        <canvas id="emotion-chart"></canvas>
-                    </div>
-                </div>
-                <p id="report-emotion-analysis" class="text-gray-700 bg-gray-50 p-4 rounded-lg whitespace-pre-wrap"></p>
-            </div>
-
-            <!-- Chapter 3: Communication Deep Dive -->
-            <div class="mb-8 pb-4 border-b">
-                <h3 class="text-xl font-semibold mb-4">Chapter 3: Communication Deep Dive</h3>
-                <p id="report-communication" class="text-gray-700 bg-gray-50 p-4 rounded-lg whitespace-pre-wrap"></p>
-            </div>
-            
-            <!-- Chapter 4: Key Dynamics & Hidden Currents -->
-            <div class="mb-8 pb-4 border-b">
-                <h3 class="text-xl font-semibold mb-4">Chapter 4: Key Dynamics & Hidden Currents</h3>
-                <p id="report-dynamics" class="text-gray-700 bg-gray-50 p-4 rounded-lg whitespace-pre-wrap"></p>
-            </div>
-
-            <!-- Chapter 5: The Path Forward -->
-            <div class="mb-8 pb-4 border-b">
-                <h3 class="text-xl font-semibold mb-4">Chapter 5: The Path Forward: Fatherly Advice</h3>
-                 <p id="report-advice" class="text-gray-700 bg-gray-50 p-4 rounded-lg whitespace-pre-wrap"></p>
-            </div>
-            
-             <!-- Chapter 6: Concluding Thoughts & Resources -->
-            <div class="text-center">
-                <h3 class="text-xl font-semibold mb-4">Chapter 6: Concluding Thoughts & Resources</h3>
-                 <p class="text-gray-600 mb-6">Remember, every relationship faces challenges. Your willingness to engage in this deep reflection is a profound sign of courage and strength.</p>
-                <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <h4 class="font-semibold text-red-800">Important Disclaimer</h4>
-                    <p class="text-red-700">Aura is an AI-powered informational tool, not a licensed therapist. This advice is for self-reflection and is not a substitute for professional counsel. If you are in crisis, please contact a professional.</p>
-                </div>
-                 <button id="download-report-btn" class="mt-8 bg-green-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-green-700 transition duration-150 ease-in-out">Download Full Report (PDF)</button>
-            </div>
-
-
-        </div>
-        
-        <!-- Error Modal -->
-        <div id="error-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-          <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div class="mt-3 text-center">
-              <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-                <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                </svg>
-              </div>
-              <h3 class="text-lg leading-6 font-medium text-gray-900">Analysis Failed</h3>
-              <div class="mt-2 px-7 py-3">
-                <p id="error-message" class="text-sm text-gray-500">
-                  There was an error generating your report. Please try again later.
-                </p>
-              </div>
-              <div class="items-center px-4 py-3">
-                <button id="close-error-modal" class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- DOM Element Selection ---
-            const onboardingScreen = document.getElementById('onboarding-screen');
-            const dashboardScreen = document.getElementById('dashboard-screen');
-            const reportScreen = document.getElementById('report-screen');
-            const startBtn = document.getElementById('start-btn');
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden modal">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+            <button id="close-modal-btn" class="absolute top-0 right-0 mt-4 mr-4 text-gray-400 hover:text-gray-800 text-2xl font-bold">&times;</button>
+            <div class="mt-3">
+                <div class="flex border-b mb-6"><button id="modal-show-login-btn" class="flex-1 py-2 font-semibold">Login</button><button id="modal-show-signup-btn" class="flex-1 py-2 font-semibold">Sign Up</button></div>
+                <div id="modal-login-form-container">
+                    <form id="login-form">
+                        <div class="mb-4"><label for="login-email" class="block text-sm font-medium">Email</label><input type="email" id="login-email" required class="mt-1 block w-full p-2 border rounded-md"></div>
+                        <div class="mb-6"><label for="login-password" class="block text-sm font-medium">Password</label><input type="password" id="login-password" required class="mt-1 block w-full p-2 border rounded-md"></div>
+                        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded">Login</button>
+                    </form>
+                </div>
+                <div id="modal-signup-form-container" class="hidden">
+                    <form id="signup-form">
+                        <div class="mb-4"><label for="signup-email" class="block text-sm font-medium">Email</label><input type="email" id="signup-email" required class="mt-1 block w-full p-2 border rounded-md"></div>
+                        <div class="mb-6"><label for="signup-password" class="block text-sm font-medium">Password</label><input type="password" id="signup-password" required class="mt-1 block w-full p-2 border rounded-md"></div>
+                        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded">Create Account</button>
+                    </form>
+                </div>
+                <p id="auth-error" class="text-red-500 text-sm mt-4 text-center hidden"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+      
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7JLjyqeNfQsRpQLsmpP7WWQN2YPhpuU",
+            authDomain: "aura-ai-app-79f0f.firebaseapp.com",
+            projectId: "aura-ai-app-79f0f",
+            storageBucket: "aura-ai-app-79f0f.appspot.com",
+            messagingSenderId: "388382191448",
+            appId: "1:388382191448:web:16b533aa82c66251281c2d"
+        };
+      
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- Global State ---
+        let userIsAnonymous = true;
+        let userReportsCache = [];
+
+        // --- Element Selection ---
+        const initialLoadingScreen = document.getElementById('initial-loading-screen');
+        const mainContent = document.getElementById('main-content');
+        const mainHeader = document.getElementById('main-header');
+        const authModal = document.getElementById('auth-modal');
+        const loginSignupBtn = document.getElementById('login-signup-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        
+        const personalDashboardScreen = document.getElementById('personal-dashboard-screen');
+        const newAnalysisScreen = document.getElementById('new-analysis-screen');
+        const reportDisplayScreen = document.getElementById('report-display-screen');
+        
+        const navDashboardBtn = document.getElementById('nav-dashboard-btn');
+        const navNewAnalysisBtn = document.getElementById('nav-new-analysis-btn');
+        const goToAnalysisBtn = document.getElementById('go-to-analysis-btn');
+
+        let emotionChartInstance = null;
+        
+        // --- Navigation ---
+        function navigateTo(screenName) {
+            [personalDashboardScreen, newAnalysisScreen, reportDisplayScreen].forEach(s => s.classList.add('hidden'));
+            [navDashboardBtn, navNewAnalysisBtn].forEach(b => b.classList.remove('nav-active'));
+            
+            if (screenName === 'dashboard') {
+                personalDashboardScreen.classList.remove('hidden');
+                navDashboardBtn.classList.add('nav-active');
+                fetchAndDisplayReports();
+            } else if (screenName === 'newAnalysis') {
+                newAnalysisScreen.classList.remove('hidden');
+                navNewAnalysisBtn.classList.add('nav-active');
+            } else if (screenName === 'reportDisplay') {
+                reportDisplayScreen.classList.remove('hidden');
+                navDashboardBtn.classList.add('nav-active');
+            }
+        }
+        navDashboardBtn.addEventListener('click', () => {
+            if (userIsAnonymous) { showAuthModal(); } else { navigateTo('dashboard'); }
+        });
+        navNewAnalysisBtn.addEventListener('click', () => navigateTo('newAnalysis'));
+        goToAnalysisBtn.addEventListener('click', () => navigateTo('newAnalysis'));
+
+        // --- Auth State ---
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                userIsAnonymous = user.isAnonymous;
+                initialLoadingScreen.classList.add('hidden');
+                mainContent.classList.remove('hidden');
+                mainHeader.classList.add('flex');
+                mainHeader.classList.remove('hidden');
+
+                if (userIsAnonymous) {
+                    loginSignupBtn.classList.remove('hidden');
+                    logoutBtn.classList.add('hidden');
+                    navDashboardBtn.classList.remove('nav-active');
+                    navigateTo('newAnalysis');
+                } else {
+                    loginSignupBtn.classList.add('hidden');
+                    logoutBtn.classList.remove('hidden');
+                    navigateTo('dashboard');
+                }
+            } else {
+                signInAnonymously(auth).catch(error => {
+                    console.error("Anonymous sign-in failed:", error.code, error.message);
+                    let userMessage = `<strong>Error Initializing Session</strong><br>This can happen if the API key is misconfigured.`;
+                    if (error.code === 'auth/invalid-api-key') {
+                        userMessage += `<br><br>Please follow the troubleshooting guide to check API key restrictions in your Google Cloud Console.`;
+                    }
+                    initialLoadingScreen.innerHTML = `<div class="text-red-600 bg-red-100 border border-red-400 rounded p-4">${userMessage}</div>`;
+                });
+            }
+        });
+        
+        // --- Modal & CTA Logic ---
+        function showAuthModal() { authModal.classList.remove('hidden'); }
+        loginSignupBtn.addEventListener('click', showAuthModal);
+        document.getElementById('upgrade-link').addEventListener('click', (e) => { e.preventDefault(); showAuthModal(); });
+        document.getElementById('close-modal-btn').addEventListener('click', () => authModal.classList.add('hidden'));
+        
+        // --- Analysis & Report Logic ---
+        async function runAnalysis() {
             const analyzeBtn = document.getElementById('analyze-btn');
             const analyzeBtnText = document.getElementById('analyze-btn-text');
             const analyzeSpinner = document.getElementById('analyze-spinner');
-            const stepper = {
-                1: document.getElementById('step-1'),
-                2: document.getElementById('step-2'),
-                3: document.getElementById('step-3'),
-            };
-            const consentForm = document.getElementById('consent-form');
-            const consentNarrative = document.getElementById('consent-narrative');
-            const consentError = document.getElementById('consent-error');
-            const childrenInvolvedCheckbox = document.getElementById('children-involved');
-            const childrenDetailsDiv = document.getElementById('children-details');
-            const formError = document.getElementById('form-error');
-            const errorModal = document.getElementById('error-modal');
-            const errorMessage = document.getElementById('error-message');
-            const closeErrorModalBtn = document.getElementById('close-error-modal');
-            let emotionChartInstance = null;
             
-            // --- UI Update Functions ---
-            const updateStepper = (currentStep) => {
-                Object.values(stepper).forEach(step => step.classList.remove('step-active', 'text-gray-500'));
-                stepper[1].classList.add(currentStep >= 1 ? 'step-active' : 'text-gray-500');
-                stepper[2].classList.add(currentStep >= 2 ? 'step-active' : 'text-gray-500');
-                stepper[3].classList.add(currentStep >= 3 ? 'step-active' : 'text-gray-500');
-            };
+            analyzeBtnText.textContent = "Analyzing...";
+            analyzeSpinner.classList.remove('hidden');
+            analyzeBtn.disabled = true;
 
-            const showScreen = (screen) => {
-                [onboardingScreen, dashboardScreen, reportScreen].forEach(s => s.classList.add('hidden'));
-                screen.classList.remove('hidden');
-            };
-
-            const setLoadingState = (isLoading) => {
-                analyzeBtn.disabled = isLoading;
-                analyzeBtnText.classList.toggle('hidden', isLoading);
-                analyzeSpinner.classList.toggle('hidden', !isLoading);
-            };
+            const user = auth.currentUser;
+            if (!user) { alert("Authentication error. Please log in again."); return; }
             
-            const showErrorModal = (message) => {
-                errorMessage.textContent = message || "An unknown error occurred. Please check the console for details.";
-                errorModal.classList.remove('hidden');
+            const idToken = await user.getIdToken();
+            const formData = {
+                narrative: document.getElementById('narrative').value,
+                coreQuestion: document.getElementById('core-question').value,
             };
 
-            // --- Event Listeners ---
-            startBtn.addEventListener('click', () => {
-                if (!consentNarrative.checked) {
-                    consentError.classList.remove('hidden');
-                    return;
-                }
-                consentError.classList.add('hidden');
-                showScreen(dashboardScreen);
-                updateStepper(2);
-            });
-            
-            childrenInvolvedCheckbox.addEventListener('change', () => {
-                childrenDetailsDiv.classList.toggle('hidden', !childrenInvolvedCheckbox.checked);
-            });
-
-            analyzeBtn.addEventListener('click', () => {
-                // Basic Validation
-                const narrative = document.getElementById('narrative').value;
-                const coreQuestion = document.getElementById('core-question').value;
-                if (!narrative.trim() || !coreQuestion.trim()) {
-                    formError.classList.remove('hidden');
-                    return;
-                }
-                formError.classList.add('hidden');
-                
-                // Start AI analysis
-                runAnalysis();
-            });
-            
-            closeErrorModalBtn.addEventListener('click', () => {
-                errorModal.classList.add('hidden');
-            });
-
-            // --- Core AI Analysis Function ---
-            async function runAnalysis() {
-                setLoadingState(true);
-                updateStepper(3);
-
-                // 1. Collect all data from the form
-                const formData = {
-                    narrative: document.getElementById('narrative').value,
-                    coreQuestion: document.getElementById('core-question').value,
-                    relationshipStatus: document.getElementById('relationship-status').value,
-                    primaryChallenges: Array.from(document.querySelectorAll('#primary-challenges input:checked')).map(el => el.value),
-                    yourAge: document.getElementById('your-age').value,
-                    partnerAge: document.getElementById('partner-age').value,
-                    childrenInvolved: document.getElementById('children-involved').checked,
-                    childrenFrom: document.querySelector('input[name="children-from"]:checked')?.value || 'N/A',
-                    coParenting: document.getElementById('co-parenting').checked
-                };
-
-                // 2. Construct the prompt for the Gemini API
-                const prompt = `
-                    You are Aura, a confidential and empathetic AI relationship advisor as described in the blueprint document. Your tone should be like 'fatherly advice': wise, caring, direct, and encouraging. 
-                    
-                    Analyze the following user-provided data and generate a comprehensive relationship report.
-                    
-                    **User Data:**
-                    - Narrative: "${formData.narrative}"
-                    - Core Question: "${formData.coreQuestion}"
-                    - Relationship Status: ${formData.relationshipStatus}
-                    - Primary Challenges: ${formData.primaryChallenges.join(', ') || 'None specified'}
-                    - User's Age: ${formData.yourAge || 'Not provided'}
-                    - Partner's Age: ${formData.partnerAge || 'Not provided'}
-                    - Children Involved: ${formData.childrenInvolved ? 'Yes' : 'No'}
-                    - Children From: ${formData.childrenFrom}
-                    - Co-parenting with Ex: ${formData.coParenting ? 'Yes' : 'No'}
-
-                    Your response MUST be a single, valid JSON object that follows the specified schema, containing the full text for each chapter of the report.
-                `;
-
-                // 3. Define the JSON schema for the structured response
-                const schema = {
-                  type: "OBJECT",
-                  properties: {
-                    situation_glance: { type: "STRING", description: "Chapter 1: A personalized summary that paraphrases the user's stated problem and core question to show you've 'listened'." },
-                    emotional_landscape_analysis: { type: "STRING", description: "A text-based analysis of the emotional themes and tone found in the user's narrative." },
-                    emotional_landscape_chart_data: {
-                        type: "OBJECT",
-                        description: "Data for a doughnut chart. Values MUST be numbers and sum to 100.",
-                        properties: {
-                            positive: { "type": "NUMBER" },
-                            negative: { "type": "NUMBER" },
-                            neutral: { "type": "NUMBER" }
-                        },
-                        required: ["positive", "negative", "neutral"]
-                    },
-                    communication_deep_dive: { type: "STRING", description: "Chapter 3: Insights into communication patterns and potential attachment styles inferred from the narrative." },
-                    key_dynamics: { type: "STRING", description: "Chapter 4: Analysis of context-specific findings based on factors like age gap, family structure, etc." },
-                    fatherly_advice: { type: "STRING", description: "Chapter 5: Direct, empathetic, and actionable 'fatherly advice' that addresses the core question and analysis findings." }
-                  },
-                  required: ["situation_glance", "emotional_landscape_analysis", "emotional_landscape_chart_data", "communication_deep_dive", "key_dynamics", "fatherly_advice"]
-                };
-
-                // 4. Make the API call
-                try {
-                    const apiKey = "AIzaSyBnmz1qjjje3dSyd4hczYUAhJus236vofc"; // API key is handled by the environment
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-                    const payload = {
-                        contents: [{ role: "user", parts: [{ text: prompt }] }],
-                        generationConfig: {
-                            responseMimeType: "application/json",
-                            responseSchema: schema,
-                        }
-                    };
-
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                       throw new Error(`API request failed with status ${response.status}: ${response.statusText}`);
-                    }
-
-                    const result = await response.json();
-                    
-                    if (result.candidates && result.candidates.length > 0) {
-                        const reportJsonText = result.candidates[0].content.parts[0].text;
-                        const reportData = JSON.parse(reportJsonText);
-                        displayReport(reportData);
-                    } else {
-                        throw new Error("Received an invalid or empty response from the AI.");
-                    }
-
-                } catch (error) {
-                    console.error("Error during AI analysis:", error);
-                    showErrorModal(error.message);
-                } finally {
-                    setLoadingState(false);
-                }
-            }
-
-            // --- Report Display Function ---
-            function displayReport(data) {
-                // Populate text content
-                document.getElementById('report-summary').textContent = data.situation_glance;
-                document.getElementById('report-emotion-analysis').textContent = data.emotional_landscape_analysis;
-                document.getElementById('report-communication').textContent = data.communication_deep_dive;
-                document.getElementById('report-dynamics').textContent = data.key_dynamics;
-                document.getElementById('report-advice').textContent = data.fatherly_advice;
-
-                // Render Chart.js emotional landscape
-                const chartData = data.emotional_landscape_chart_data;
-                const ctx = document.getElementById('emotion-chart').getContext('2d');
-                
-                if (emotionChartInstance) {
-                    emotionChartInstance.destroy();
-                }
-                
-                emotionChartInstance = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Negative', 'Neutral', 'Positive'],
-                        datasets: [{
-                            label: 'Emotional Tone',
-                            data: [chartData.negative, chartData.neutral, chartData.positive],
-                            backgroundColor: [
-                                'rgba(239, 68, 68, 0.7)',
-                                'rgba(107, 114, 128, 0.7)',
-                                'rgba(34, 197, 94, 0.7)'
-                            ],
-                            borderColor: [
-                                'rgba(239, 68, 68, 1)',
-                                'rgba(107, 114, 128, 1)',
-                                'rgba(34, 197, 94, 1)'
-                            ],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                       responsive: true,
-                       plugins: {
-                           legend: { position: 'top' },
-                           title: { display: false }
-                       }
-                    }
+            try {
+                const apiUrl = 'http://127.0.0.1:5000/analyze'; 
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+                    body: JSON.stringify(formData)
                 });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Analysis request failed.');
+                }
                 
-                showScreen(reportScreen);
-            }
+                const reportData = await response.json();
+                
+                if (user.isAnonymous) {
+                    displaySingleReport(reportData, true);
+                } else {
+                    navigateTo('dashboard');
+                }
 
-            // --- Initial Setup ---
-            updateStepper(1);
-            showScreen(onboardingScreen);
-        });
+            } catch (error) {
+                console.error("Error during AI analysis:", error);
+                alert(`Analysis Failed: ${error.message}`);
+            } finally {
+                analyzeBtnText.textContent = "Analyze My Relationship";
+                analyzeSpinner.classList.add('hidden');
+                analyzeBtn.disabled = false;
+            }
+        }
+        document.getElementById('analyze-btn').addEventListener('click', runAnalysis);
+
+        function displaySingleReport(reportData, isTemporary = false) {
+            const reportContent = (typeof reportData.report === 'string') ? JSON.parse(reportData.report) : reportData;
+
+            document.getElementById('upgrade-cta-container').classList.toggle('hidden', !isTemporary);
+            const reportContentContainer = document.getElementById('report-content-container');
+            
+            reportContentContainer.innerHTML = `
+                <div class="mb-8 pb-4 border-b"><h3 class="text-xl font-semibold mb-4">Chapter 1: Your Situation at a Glance</h3><p class="text-gray-700 bg-gray-50 p-4 rounded-lg whitespace-pre-wrap">${reportContent.situation_glance}</p></div>
+                <div class="mb-8 pb-4 border-b"><h3 class="text-xl font-semibold mb-4">Chapter 2: The Emotional Landscape</h3><div class="max-w-sm mx-auto mb-4"><canvas id="emotion-chart-display"></canvas></div><p class="text-gray-700 bg-gray-50 p-4 rounded-lg whitespace-pre-wrap">${reportContent.emotional_landscape_analysis}</p></div>
+                <div class="mb-8 pb-4 border-b"><h3 class="text-xl font-semibold mb-4">Chapter 3: Communication Deep Dive</h3><p class="text-gray-700 bg-gray-50 p-4 rounded-lg whitespace-pre-wrap">${reportContent.communication_deep_dive}</p></div>
+                <div class="mb-8 pb-4 border-b"><h3 class="text-xl font-semibold mb-4">Chapter 4: Key Dynamics & Hidden Currents</h3><p class="text-gray-700 bg-gray-50 p-4 rounded-lg whitespace-pre-wrap">${reportContent.key_dynamics}</p></div>
+                <div><h3 class="text-xl font-semibold mb-4">Chapter 5: The Path Forward</h3><p class="text-gray-700 bg-gray-50 p-4 rounded-lg whitespace-pre-wrap">${reportContent.fatherly_advice}</p></div>`;
+
+            navigateTo('reportDisplay');
+
+            const chartData = reportContent.emotional_landscape_chart_data;
+            const ctx = document.getElementById('emotion-chart-display').getContext('2d');
+            if (emotionChartInstance) emotionChartInstance.destroy();
+            emotionChartInstance = new Chart(ctx, {
+                type: 'doughnut', data: { labels: ['Negative', 'Neutral', 'Positive'], datasets: [{ data: [chartData.negative, chartData.neutral, chartData.positive], backgroundColor: ['rgba(239, 68, 68, 0.7)', 'rgba(107, 114, 128, 0.7)', 'rgba(34, 197, 94, 0.7)'] }] },
+            });
+        }
+        
+        async function fetchAndDisplayReports() {
+            const reportsListContainer = document.getElementById('reports-list-container');
+            reportsListContainer.innerHTML = '<p>Loading your past reports...</p>';
+            const user = auth.currentUser;
+            if (!user || user.isAnonymous) {
+                 reportsListContainer.innerHTML = '<p class="text-center text-gray-600">Your saved reports will appear here. <a href="#" id="dashboard-signup-link" class="text-blue-600 font-semibold underline">Create a free account</a> to save your history.</p>';
+                 document.getElementById('dashboard-signup-link').addEventListener('click', (e) => { e.preventDefault(); showAuthModal(); });
+                return;
+            }
+            
+            try {
+                const reportsRef = collection(db, "reports");
+                const q = query(reportsRef, where("userId", "==", user.uid), orderBy("createdAt", "desc"));
+                const querySnapshot = await getDocs(q);
+                userReportsCache = [];
+                
+                if (querySnapshot.empty) {
+                    reportsListContainer.innerHTML = '<p class="text-center text-gray-600">You have no past reports. Create your first analysis!</p>';
+                    return;
+                }
+                
+                reportsListContainer.innerHTML = '';
+                querySnapshot.forEach((doc) => {
+                    const report = { id: doc.id, ...doc.data() };
+                    userReportsCache.push(report);
+                    const reportCard = document.createElement('div');
+                    reportCard.className = 'bg-white p-4 rounded-lg shadow-sm border cursor-pointer hover:shadow-md transition';
+                    reportCard.innerHTML = `<p class="font-semibold text-lg text-gray-800">${report.coreQuestion}</p><p class="text-sm text-gray-500">Analyzed on: ${report.createdAt.toDate().toLocaleDateString()}</p>`;
+                    reportCard.addEventListener('click', () => displaySingleReport(report));
+                    reportsListContainer.appendChild(reportCard);
+                });
+            } catch (error) {
+                console.error("Error fetching reports:", error);
+                reportsListContainer.innerHTML = `<p class="text-red-500">Could not load reports.</p>`;
+            }
+        }
+        
+        // --- Auth Form Setup ---
+        const loginForm = document.getElementById('login-form');
+        loginForm.addEventListener('submit', (e) => { e.preventDefault(); const authError = document.getElementById('auth-error'); authError.classList.add('hidden'); signInWithEmailAndPassword(auth, loginForm['login-email'].value, loginForm['login-password'].value).then(() => authModal.classList.add('hidden')).catch(err => { authError.textContent = err.message; authError.classList.remove('hidden'); }); });
+        const signupForm = document.getElementById('signup-form');
+        signupForm.addEventListener('submit', (e) => { e.preventDefault(); const authError = document.getElementById('auth-error'); authError.classList.add('hidden'); createUserWithEmailAndPassword(auth, signupForm['signup-email'].value, signupForm['signup-password'].value).then(() => authModal.classList.add('hidden')).catch(err => { authError.textContent = err.message; authError.classList.remove('hidden'); }); });
+        logoutBtn.addEventListener('click', () => signOut(auth));
+        document.getElementById('modal-show-login-btn').addEventListener('click', () => { document.getElementById('modal-login-form-container').style.display = 'block'; document.getElementById('modal-signup-form-container').style.display = 'none'; });
+        document.getElementById('modal-show-signup-btn').addEventListener('click', () => { document.getElementById('modal-login-form-container').style.display = 'none'; document.getElementById('modal-signup-form-container').style.display = 'block'; });
+        document.getElementById('modal-show-login-btn').click();
 
     </script>
 </body>
