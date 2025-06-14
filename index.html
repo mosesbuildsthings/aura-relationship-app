@@ -150,7 +150,7 @@
                 navNewAnalysisBtn.classList.add('nav-active');
             } else if (screenName === 'reportDisplay') {
                 reportDisplayScreen.classList.remove('hidden');
-                navDashboardBtn.classList.add('nav-active');
+                navDashboardBtn.classList.add('nav-active'); 
             }
         }
         navDashboardBtn.addEventListener('click', () => {
@@ -181,11 +181,7 @@
             } else {
                 signInAnonymously(auth).catch(error => {
                     console.error("Anonymous sign-in failed:", error.code, error.message);
-                    let userMessage = `<strong>Error Initializing Session</strong><br>This can happen if the API key is misconfigured.`;
-                    if (error.code === 'auth/invalid-api-key') {
-                        userMessage += `<br><br>Please follow the troubleshooting guide to check API key restrictions in your Google Cloud Console.`;
-                    }
-                    initialLoadingScreen.innerHTML = `<div class="text-red-600 bg-red-100 border border-red-400 rounded p-4">${userMessage}</div>`;
+                    initialLoadingScreen.innerHTML = `<div class="text-red-600 bg-red-100 border border-red-400 rounded p-4"><strong>Error Initializing Session.</strong> Please check your Firebase project's API key restrictions in the Google Cloud Console.</div>`;
                 });
             }
         });
@@ -216,7 +212,10 @@
             };
 
             try {
-                const apiUrl = 'http://127.0.0.1:5000/analyze'; 
+                // ** THIS IS THE KEY CHANGE **
+                // Now pointing to your live Render backend URL
+                const apiUrl = 'https://aura-backend-51f1.onrender.com/analyze'; 
+
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
@@ -253,10 +252,10 @@
             const reportContentContainer = document.getElementById('report-content-container');
             
             reportContentContainer.innerHTML = `
-                <div class="mb-8 pb-4 border-b"><h3 class="text-xl font-semibold mb-4">Chapter 1: Your Situation at a Glance</h3><p class="text-gray-700 bg-gray-50 p-4 rounded-lg whitespace-pre-wrap">${reportContent.situation_glance}</p></div>
-                <div class="mb-8 pb-4 border-b"><h3 class="text-xl font-semibold mb-4">Chapter 2: The Emotional Landscape</h3><div class="max-w-sm mx-auto mb-4"><canvas id="emotion-chart-display"></canvas></div><p class="text-gray-700 bg-gray-50 p-4 rounded-lg whitespace-pre-wrap">${reportContent.emotional_landscape_analysis}</p></div>
+                <div class="mb-8 pb-4 border-b"><h3 class="text-xl font-semibold mb-4">Chapter 1: Situation at a Glance</h3><p class="text-gray-700 bg-gray-50 p-4 rounded-lg whitespace-pre-wrap">${reportContent.situation_glance}</p></div>
+                <div class="mb-8 pb-4 border-b"><h3 class="text-xl font-semibold mb-4">Chapter 2: Emotional Landscape</h3><div class="max-w-sm mx-auto mb-4"><canvas id="emotion-chart-display"></canvas></div><p class="text-gray-700 bg-gray-50 p-4 rounded-lg whitespace-pre-wrap">${reportContent.emotional_landscape_analysis}</p></div>
                 <div class="mb-8 pb-4 border-b"><h3 class="text-xl font-semibold mb-4">Chapter 3: Communication Deep Dive</h3><p class="text-gray-700 bg-gray-50 p-4 rounded-lg whitespace-pre-wrap">${reportContent.communication_deep_dive}</p></div>
-                <div class="mb-8 pb-4 border-b"><h3 class="text-xl font-semibold mb-4">Chapter 4: Key Dynamics & Hidden Currents</h3><p class="text-gray-700 bg-gray-50 p-4 rounded-lg whitespace-pre-wrap">${reportContent.key_dynamics}</p></div>
+                <div class="mb-8 pb-4 border-b"><h3 class="text-xl font-semibold mb-4">Chapter 4: Key Dynamics</h3><p class="text-gray-700 bg-gray-50 p-4 rounded-lg whitespace-pre-wrap">${reportContent.key_dynamics}</p></div>
                 <div><h3 class="text-xl font-semibold mb-4">Chapter 5: The Path Forward</h3><p class="text-gray-700 bg-gray-50 p-4 rounded-lg whitespace-pre-wrap">${reportContent.fatherly_advice}</p></div>`;
 
             navigateTo('reportDisplay');
