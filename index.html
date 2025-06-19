@@ -76,7 +76,10 @@
         <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
             <button id="close-modal-btn" class="absolute top-0 right-0 mt-4 mr-4 text-gray-400 hover:text-gray-800 text-2xl font-bold">&times;</button>
             <div class="mt-3">
-                <div class="flex border-b mb-6"><button id="modal-show-login-btn" class="flex-1 py-2 font-semibold">Login</button><button id="modal-show-signup-btn" class="flex-1 py-2 font-semibold">Sign Up</button></div>
+                <div class="flex border-b mb-6">
+                    <button id="modal-show-login-btn" class="flex-1 py-2 font-semibold nav-active">Login</button>
+                    <button id="modal-show-signup-btn" class="flex-1 py-2 font-semibold text-gray-500">Sign Up</button>
+                </div>
                 <div id="modal-login-form-container">
                     <form id="login-form">
                         <div class="mb-4"><label for="login-email" class="block text-sm font-medium">Email</label><input type="email" id="login-email" required class="mt-1 block w-full p-2 border rounded-md"></div>
@@ -103,7 +106,6 @@
         
         // --- 1. CONFIGURATION ---
         const firebaseConfig = {
-            // Your public Firebase config object
             apiKey: "AIzaSyD7JLjyqeNfQsRpQLsmpP7WWQN2YPhpuU",
             authDomain: "aura-ai-app-79fd0.firebaseapp.com",
             projectId: "aura-ai-app-79fd0",
@@ -111,8 +113,6 @@
             messagingSenderId: "388382191448",
             appId: "1:388382191448:web:16b533aa82c66251281c2d"
         };
-
-        // IMPORTANT: The URL of your deployed backend on Render
         const API_BASE_URL = "https://aura-backend-51f1.onrender.com";
 
         // --- 2. INITIALIZATION ---
@@ -123,51 +123,50 @@
         const initialLoadingScreen = document.getElementById('initial-loading-screen');
         const mainContent = document.getElementById('main-content');
         const mainHeader = document.getElementById('main-header');
-        
         const personalDashboardScreen = document.getElementById('personal-dashboard-screen');
         const newAnalysisScreen = document.getElementById('new-analysis-screen');
         const reportDisplayScreen = document.getElementById('report-display-screen');
-        
         const reportsListContainer = document.getElementById('reports-list-container');
-        
         const logoutBtn = document.getElementById('logout-btn');
         const loginSignupBtn = document.getElementById('login-signup-btn');
-        
         const navDashboardBtn = document.getElementById('nav-dashboard-btn');
         const navNewAnalysisBtn = document.getElementById('nav-new-analysis-btn');
         const goToAnalysisBtn = document.getElementById('go-to-analysis-btn');
-
         const analyzeBtn = document.getElementById('analyze-btn');
         const analyzeBtnText = document.getElementById('analyze-btn-text');
         const analyzeSpinner = document.getElementById('analyze-spinner');
+        
+        // Modal References
+        const authModal = document.getElementById('auth-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const modalShowLoginBtn = document.getElementById('modal-show-login-btn');
+        const modalShowSignupBtn = document.getElementById('modal-show-signup-btn');
+        const loginFormContainer = document.getElementById('modal-login-form-container');
+        const signupFormContainer = document.getElementById('modal-signup-form-container');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const authError = document.getElementById('auth-error');
 
         // --- 4. AUTH STATE MANAGEMENT ---
         onAuthStateChanged(auth, user => {
-            // This is the key part: Hide loading screen and show the app
             initialLoadingScreen.classList.remove('visible');
             initialLoadingScreen.classList.add('hidden');
             mainContent.classList.remove('hidden');
-            mainHeader.classList.remove('hidden');
+            mainHeader.style.display = 'flex';
 
             if (user && !user.isAnonymous) {
-                // User is signed in with an account
                 console.log("User is signed in:", user.uid);
                 loginSignupBtn.classList.add('hidden');
                 logoutBtn.classList.remove('hidden');
                 updateUIForLoggedInUser();
             } else {
-                // User is anonymous or signed out
                 console.log("User is anonymous or signed out.");
                 loginSignupBtn.classList.remove('hidden');
                 logoutBtn.classList.add('hidden');
-                
-                // Ensure an anonymous session exists for new visitors
                 if (!user) {
-                    signInAnonymously(auth).catch(error => {
-                        console.error("Anonymous sign-in failed:", error);
-                    });
+                    signInAnonymously(auth).catch(error => console.error("Anonymous sign-in failed:", error));
                 }
-                showNewAnalysisScreen(); // Default for new/logged-out users
+                showNewAnalysisScreen();
             }
         });
 
@@ -196,113 +195,133 @@
         async function fetchAndDisplayReports() {
             const user = auth.currentUser;
             if (!user) return;
-
             reportsListContainer.innerHTML = '<p class="text-gray-500">Loading reports...</p>';
-
             try {
                 const token = await user.getIdToken();
                 const response = await fetch(`${API_BASE_URL}/get-reports`, {
                     method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
-
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch reports: ${response.statusText}`);
-                }
-
+                if (!response.ok) throw new Error(`Failed to fetch reports: ${response.statusText}`);
                 const reports = await response.json();
-                reportsListContainer.innerHTML = ''; // Clear loading message
+                reportsListContainer.innerHTML = '';
                 if (reports.length === 0) {
-                    reportsListContainer.innerHTML = '<p class="text-gray-500 text-center mt-8">You have no saved reports. Create a new analysis to get started!</p>';
+                    reportsListContainer.innerHTML = '<p class="text-gray-500 text-center mt-8">You have no saved reports.</p>';
                 } else {
                     reports.forEach(report => {
                          const reportElement = document.createElement('div');
                          reportElement.className = 'bg-white p-4 rounded-lg shadow cursor-pointer hover:shadow-md transition';
-                         reportElement.innerHTML = `
-                            <h3 class="font-bold text-lg">${report.core_question}</h3>
-                            <p class="text-sm text-gray-500">Analyzed on: ${new Date(report.timestamp).toLocaleDateString()}</p>
-                         `;
-                         // We'll add click handling later to view the full report
+                         reportElement.innerHTML = `<h3 class="font-bold text-lg">${report.core_question}</h3><p class="text-sm text-gray-500">Analyzed on: ${new Date(report.timestamp).toLocaleDateString()}</p>`;
                          reportsListContainer.appendChild(reportElement);
                     });
                 }
             } catch (error) {
                 console.error("Error fetching reports:", error);
-                reportsListContainer.innerHTML = '<p class="text-red-500 text-center mt-8">Could not load your reports. Please try again later.</p>';
+                reportsListContainer.innerHTML = '<p class="text-red-500 text-center mt-8">Could not load your reports.</p>';
             }
         }
 
         async function handleAnalysisRequest() {
             const user = auth.currentUser;
-            if (!user) {
-                alert("Authentication error. Please refresh the page.");
-                return;
-            }
-
+            if (!user) { alert("Authentication error. Please refresh."); return; }
             const narrative = document.getElementById('narrative').value;
             const coreQuestion = document.getElementById('core-question').value;
-
-            if (!narrative.trim() || !coreQuestion.trim()) {
-                alert("Please fill out both the narrative and the core question.");
-                return;
-            }
-
-            // Show loading state on button
+            if (!narrative.trim() || !coreQuestion.trim()) { alert("Please fill out both fields."); return; }
             analyzeBtn.disabled = true;
             analyzeBtnText.classList.add('hidden');
             analyzeSpinner.classList.remove('hidden');
-
             try {
                 const token = await user.getIdToken();
                 const response = await fetch(`${API_BASE_URL}/analyze`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        narrative: narrative,
-                        core_question: coreQuestion
-                    })
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ narrative, core_question: coreQuestion })
                 });
-
                 if (!response.ok) {
                     const errorData = await response.json();
                     throw new Error(errorData.error || 'Analysis failed.');
                 }
-
                 const report = await response.json();
-                
-                // Display the report
-                document.getElementById('report-content-container').innerHTML = report.html_report; // Assuming backend sends HTML
+                document.getElementById('report-content-container').innerHTML = report.html_report;
                 showScreen(reportDisplayScreen);
-
             } catch(error) {
                 console.error("Analysis Error:", error);
                 alert(`An error occurred: ${error.message}`);
             } finally {
-                // Reset button state
                 analyzeBtn.disabled = false;
                 analyzeBtnText.classList.remove('hidden');
                 analyzeSpinner.classList.add('hidden');
             }
         }
 
-        // --- 7. EVENT LISTENERS ---
+        // --- 7. AUTH MODAL LOGIC ---
+        function showAuthModal() { authModal.classList.remove('hidden'); }
+        function hideAuthModal() { authModal.classList.add('hidden'); authError.classList.add('hidden'); }
+
+        function showModalLoginForm() {
+            loginFormContainer.classList.remove('hidden');
+            signupFormContainer.classList.add('hidden');
+            modalShowLoginBtn.classList.add('nav-active');
+            modalShowLoginBtn.classList.remove('text-gray-500');
+            modalShowSignupBtn.classList.remove('nav-active');
+            modalShowSignupBtn.classList.add('text-gray-500');
+            authError.classList.add('hidden');
+        }
+
+        function showModalSignupForm() {
+            signupFormContainer.classList.remove('hidden');
+            loginFormContainer.classList.add('hidden');
+            modalShowSignupBtn.classList.add('nav-active');
+            modalShowSignupBtn.classList.remove('text-gray-500');
+            modalShowLoginBtn.classList.remove('nav-active');
+            modalShowLoginBtn.classList.add('text-gray-500');
+            authError.classList.add('hidden');
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = loginForm['login-email'].value;
+            const password = loginForm['login-password'].value;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                hideAuthModal();
+            } catch (error) {
+                authError.textContent = error.message;
+                authError.classList.remove('hidden');
+                console.error("Login failed:", error);
+            }
+        }
+
+        async function handleSignup(e) {
+            e.preventDefault();
+            const email = signupForm['signup-email'].value;
+            const password = signupForm['signup-password'].value;
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                hideAuthModal();
+            } catch (error) {
+                authError.textContent = error.message;
+                authError.classList.remove('hidden');
+                console.error("Signup failed:", error);
+            }
+        }
+
+        // --- 8. EVENT LISTENERS ---
         logoutBtn.addEventListener('click', () => signOut(auth));
         navDashboardBtn.addEventListener('click', updateUIForLoggedInUser);
         navNewAnalysisBtn.addEventListener('click', showNewAnalysisScreen);
         goToAnalysisBtn.addEventListener('click', showNewAnalysisScreen);
         analyzeBtn.addEventListener('click', handleAnalysisRequest);
         
-        // You would also add event listeners for the auth modal forms here
-        // For example:
-        // document.getElementById('login-form').addEventListener('submit', handleLogin);
+        // Modal Listeners
+        loginSignupBtn.addEventListener('click', showAuthModal);
+        closeModalBtn.addEventListener('click', hideAuthModal);
+        modalShowLoginBtn.addEventListener('click', showModalLoginForm);
+        modalShowSignupBtn.addEventListener('click', showModalSignupForm);
+        loginForm.addEventListener('submit', handleLogin);
+        signupForm.addEventListener('submit', handleSignup);
 
-        console.log("Aura frontend script loaded and running.");
-
+        console.log("Aura frontend script fully loaded and running.");
     </script>
 </body>
 </html>
