@@ -9,7 +9,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .screen { transition: opacity 0.3s ease-in-out; }
+        .screen { display: none; transition: opacity 0.3s ease-in-out; }
+        .visible { display: block; }
         .nav-active { color: #2563EB; border-bottom-width: 2px; border-color: #2563EB; }
         .modal { z-index: 50; }
         .loader { border-top-color: #3498db; -webkit-animation: spin 1s linear infinite; animation: spin 1s linear infinite; }
@@ -37,7 +38,7 @@
         </header>
 
         <!-- Initial Loading State -->
-        <div id="initial-loading-screen" class="text-center py-20">
+        <div id="initial-loading-screen" class="text-center py-20 visible">
             <p class="text-lg text-gray-600">Initializing Aura...</p>
         </div>
 
@@ -47,18 +48,18 @@
                 <div class="flex justify-between items-center mb-6"><h2 class="text-3xl font-bold">Your Report History</h2><button id="go-to-analysis-btn" class="bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg">New Analysis +</button></div>
                 <div id="reports-list-container" class="space-y-4"></div>
             </div>
-            <div id="new-analysis-screen" class="screen hidden">
+            <div id="new-analysis-screen" class="screen">
                 <div class="bg-white p-8 rounded-lg shadow-md">
                      <h2 class="text-2xl font-semibold mb-6">Create a New Relationship Analysis</h2>
-                     <div class="mb-8"><label for="narrative" class="block text-lg font-medium">Your Narrative</label><textarea id="narrative" rows="8" class="w-full p-4 border rounded-lg mt-2"></textarea></div>
-                     <div class="mb-6"><label for="core-question" class="block text-lg font-medium">The Core Question</label><input type="text" id="core-question" class="w-full p-3 border rounded-lg mt-2"></div>
+                     <div class="mb-8"><label for="narrative" class="block text-lg font-medium">Your Narrative</label><textarea id="narrative" rows="8" placeholder="Describe the situation, the people involved, and the dynamics of your relationship..." class="w-full p-4 border rounded-lg mt-2"></textarea></div>
+                     <div class="mb-6"><label for="core-question" class="block text-lg font-medium">The Core Question</label><input type="text" id="core-question" placeholder="e.g., 'What are the main communication challenges we are facing?'" class="w-full p-3 border rounded-lg mt-2"></div>
                      <button type="button" id="analyze-btn" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg flex items-center justify-center">
                         <span id="analyze-btn-text">Analyze My Relationship</span>
                         <div id="analyze-spinner" class="loader ease-linear rounded-full border-4 h-6 w-6 ml-3 hidden"></div>
                      </button>
                 </div>
             </div>
-            <div id="report-display-screen" class="screen hidden">
+            <div id="report-display-screen" class="screen">
                  <div class="bg-white p-8 rounded-lg shadow-md">
                      <div id="upgrade-cta-container" class="hidden bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6 rounded-md">
                          <p class="font-bold">Enjoying your analysis?</p>
@@ -95,13 +96,14 @@
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDKs and App Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-      
+        import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        
+        // --- 1. CONFIGURATION ---
         const firebaseConfig = {
+            // Your public Firebase config object
             apiKey: "AIzaSyD7JLjyqeNfQsRpQLsmpP7WWQN2YPhpuU",
             authDomain: "aura-ai-app-79fd0.firebaseapp.com",
             projectId: "aura-ai-app-79fd0",
@@ -109,13 +111,198 @@
             messagingSenderId: "388382191448",
             appId: "1:388382191448:web:16b533aa82c66251281c2d"
         };
-      
+
+        // IMPORTANT: The URL of your deployed backend on Render
+        const API_BASE_URL = "https://aura-backend-51f1.onrender.com";
+
+        // --- 2. INITIALIZATION ---
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
 
-        // All other JavaScript logic remains the same...
-        // ...
+        // --- 3. DOM ELEMENT REFERENCES ---
+        const initialLoadingScreen = document.getElementById('initial-loading-screen');
+        const mainContent = document.getElementById('main-content');
+        const mainHeader = document.getElementById('main-header');
+        
+        const personalDashboardScreen = document.getElementById('personal-dashboard-screen');
+        const newAnalysisScreen = document.getElementById('new-analysis-screen');
+        const reportDisplayScreen = document.getElementById('report-display-screen');
+        
+        const reportsListContainer = document.getElementById('reports-list-container');
+        
+        const logoutBtn = document.getElementById('logout-btn');
+        const loginSignupBtn = document.getElementById('login-signup-btn');
+        
+        const navDashboardBtn = document.getElementById('nav-dashboard-btn');
+        const navNewAnalysisBtn = document.getElementById('nav-new-analysis-btn');
+        const goToAnalysisBtn = document.getElementById('go-to-analysis-btn');
+
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const analyzeBtnText = document.getElementById('analyze-btn-text');
+        const analyzeSpinner = document.getElementById('analyze-spinner');
+
+        // --- 4. AUTH STATE MANAGEMENT ---
+        onAuthStateChanged(auth, user => {
+            // This is the key part: Hide loading screen and show the app
+            initialLoadingScreen.classList.remove('visible');
+            initialLoadingScreen.classList.add('hidden');
+            mainContent.classList.remove('hidden');
+            mainHeader.classList.remove('hidden');
+
+            if (user && !user.isAnonymous) {
+                // User is signed in with an account
+                console.log("User is signed in:", user.uid);
+                loginSignupBtn.classList.add('hidden');
+                logoutBtn.classList.remove('hidden');
+                updateUIForLoggedInUser();
+            } else {
+                // User is anonymous or signed out
+                console.log("User is anonymous or signed out.");
+                loginSignupBtn.classList.remove('hidden');
+                logoutBtn.classList.add('hidden');
+                
+                // Ensure an anonymous session exists for new visitors
+                if (!user) {
+                    signInAnonymously(auth).catch(error => {
+                        console.error("Anonymous sign-in failed:", error);
+                    });
+                }
+                showNewAnalysisScreen(); // Default for new/logged-out users
+            }
+        });
+
+        // --- 5. UI/SCREEN MANAGEMENT ---
+        function showScreen(screenToShow) {
+            [personalDashboardScreen, newAnalysisScreen, reportDisplayScreen].forEach(screen => {
+                screen.classList.remove('visible');
+            });
+            screenToShow.classList.add('visible');
+        }
+
+        function updateUIForLoggedInUser() {
+            showScreen(personalDashboardScreen);
+            navDashboardBtn.classList.add('nav-active');
+            navNewAnalysisBtn.classList.remove('nav-active');
+            fetchAndDisplayReports();
+        }
+
+        function showNewAnalysisScreen() {
+            showScreen(newAnalysisScreen);
+            navNewAnalysisBtn.classList.add('nav-active');
+            navDashboardBtn.classList.remove('nav-active');
+        }
+        
+        // --- 6. API CALLS ---
+        async function fetchAndDisplayReports() {
+            const user = auth.currentUser;
+            if (!user) return;
+
+            reportsListContainer.innerHTML = '<p class="text-gray-500">Loading reports...</p>';
+
+            try {
+                const token = await user.getIdToken();
+                const response = await fetch(`${API_BASE_URL}/get-reports`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch reports: ${response.statusText}`);
+                }
+
+                const reports = await response.json();
+                reportsListContainer.innerHTML = ''; // Clear loading message
+                if (reports.length === 0) {
+                    reportsListContainer.innerHTML = '<p class="text-gray-500 text-center mt-8">You have no saved reports. Create a new analysis to get started!</p>';
+                } else {
+                    reports.forEach(report => {
+                         const reportElement = document.createElement('div');
+                         reportElement.className = 'bg-white p-4 rounded-lg shadow cursor-pointer hover:shadow-md transition';
+                         reportElement.innerHTML = `
+                            <h3 class="font-bold text-lg">${report.core_question}</h3>
+                            <p class="text-sm text-gray-500">Analyzed on: ${new Date(report.timestamp).toLocaleDateString()}</p>
+                         `;
+                         // We'll add click handling later to view the full report
+                         reportsListContainer.appendChild(reportElement);
+                    });
+                }
+            } catch (error) {
+                console.error("Error fetching reports:", error);
+                reportsListContainer.innerHTML = '<p class="text-red-500 text-center mt-8">Could not load your reports. Please try again later.</p>';
+            }
+        }
+
+        async function handleAnalysisRequest() {
+            const user = auth.currentUser;
+            if (!user) {
+                alert("Authentication error. Please refresh the page.");
+                return;
+            }
+
+            const narrative = document.getElementById('narrative').value;
+            const coreQuestion = document.getElementById('core-question').value;
+
+            if (!narrative.trim() || !coreQuestion.trim()) {
+                alert("Please fill out both the narrative and the core question.");
+                return;
+            }
+
+            // Show loading state on button
+            analyzeBtn.disabled = true;
+            analyzeBtnText.classList.add('hidden');
+            analyzeSpinner.classList.remove('hidden');
+
+            try {
+                const token = await user.getIdToken();
+                const response = await fetch(`${API_BASE_URL}/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        narrative: narrative,
+                        core_question: coreQuestion
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Analysis failed.');
+                }
+
+                const report = await response.json();
+                
+                // Display the report
+                document.getElementById('report-content-container').innerHTML = report.html_report; // Assuming backend sends HTML
+                showScreen(reportDisplayScreen);
+
+            } catch(error) {
+                console.error("Analysis Error:", error);
+                alert(`An error occurred: ${error.message}`);
+            } finally {
+                // Reset button state
+                analyzeBtn.disabled = false;
+                analyzeBtnText.classList.remove('hidden');
+                analyzeSpinner.classList.add('hidden');
+            }
+        }
+
+        // --- 7. EVENT LISTENERS ---
+        logoutBtn.addEventListener('click', () => signOut(auth));
+        navDashboardBtn.addEventListener('click', updateUIForLoggedInUser);
+        navNewAnalysisBtn.addEventListener('click', showNewAnalysisScreen);
+        goToAnalysisBtn.addEventListener('click', showNewAnalysisScreen);
+        analyzeBtn.addEventListener('click', handleAnalysisRequest);
+        
+        // You would also add event listeners for the auth modal forms here
+        // For example:
+        // document.getElementById('login-form').addEventListener('submit', handleLogin);
+
+        console.log("Aura frontend script loaded and running.");
+
     </script>
 </body>
 </html>
