@@ -11,7 +11,8 @@
     <style>
         body { 
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #818cf8, #fbbf24, #f87171); /* Sunny, Warm Theme */
+            /* Updated gradient for a "sunny, aqua blue sky" theme */
+            background: linear-gradient(135deg, #06b6d4, #fbbf24, #f97316); 
             background-attachment: fixed;
         }
         .screen { display: none; }
@@ -24,6 +25,7 @@
         
         .main-panel {
             background-color: rgba(255, 255, 255, 0.90);
+            -webkit-backdrop-filter: blur(12px); /* Safari */
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
@@ -62,7 +64,7 @@
         </header>
 
         <div id="initial-loading-screen" class="text-center py-40">
-            <h1 class="text-5xl font-bold text-white mb-4">Aura</h1>
+            <h1 class="text-5xl font-bold text-white mb-4" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.2);">Aura</h1>
             <p class="text-lg text-white/80">Initializing Your Relationship Intelligence Platform...</p>
         </div>
 
@@ -78,8 +80,8 @@
 
             <div id="new-analysis-screen" class="screen main-panel p-8 rounded-xl shadow-xl">
                  <h2 class="text-3xl font-bold text-slate-900 mb-6">Create a New Analysis</h2>
-                 <div class="mb-6"><label for="narrative" class="block text-lg font-medium mb-2">Your Narrative</label><textarea id="narrative" rows="6" placeholder="Describe the situation, the people involved, and the dynamics of your relationship..." class="w-full p-4 border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"></textarea></div>
-                 <div class="mb-8"><label for="core-question" class="block text-lg font-medium mb-2">The Core Question</label><input type="text" id="core-question" placeholder="e.g., 'What are our main communication challenges?'" class="w-full p-3 border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"></div>
+                 <div class="mb-6"><label for="narrative" class="block text-lg font-medium mb-2">Your Narrative</label><textarea id="narrative" rows="6" placeholder="Describe the situation, the people involved, and the dynamics of your relationship..." class="w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"></textarea></div>
+                 <div class="mb-8"><label for="core-question" class="block text-lg font-medium mb-2">The Core Question</label><input type="text" id="core-question" placeholder="e.g., 'What are our main communication challenges?'" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"></div>
                  <div class="mb-8">
                     <label class="block text-lg font-medium mb-3">What to Analyze</label>
                     <div id="report-details-options" class="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -121,15 +123,15 @@
                 </div>
                 <div id="modal-login-form-container">
                     <form id="login-form" class="space-y-6">
-                        <div><label for="login-email" class="block text-sm font-medium text-slate-700">Email</label><input type="email" id="login-email" required class="mt-1 block w-full p-3 border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"></div>
-                        <div><label for="login-password" class="block text-sm font-medium text-slate-700">Password</label><input type="password" id="login-password" required class="mt-1 block w-full p-3 border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"></div>
+                        <div><label for="login-email" class="block text-sm font-medium text-slate-700">Email</label><input type="email" id="login-email" required class="mt-1 block w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"></div>
+                        <div><label for="login-password" class="block text-sm font-medium text-slate-700">Password</label><input type="password" id="login-password" required class="mt-1 block w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"></div>
                         <button type="submit" class="w-full btn-primary py-3 rounded-lg text-lg">Login</button>
                     </form>
                 </div>
                 <div id="modal-signup-form-container" class="hidden">
                     <form id="signup-form" class="space-y-6">
-                        <div><label for="signup-email" class="block text-sm font-medium text-slate-700">Email</label><input type="email" id="signup-email" required class="mt-1 block w-full p-3 border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"></div>
-                        <div><label for="signup-password" class="block text-sm font-medium text-slate-700">Password</label><input type="password" id="signup-password" required class="mt-1 block w-full p-3 border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"></div>
+                        <div><label for="signup-email" class="block text-sm font-medium text-slate-700">Email</label><input type="email" id="signup-email" required class="mt-1 block w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"></div>
+                        <div><label for="signup-password" class="block text-sm font-medium text-slate-700">Password</label><input type="password" id="signup-password" required class="mt-1 block w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"></div>
                         <button type="submit" class="w-full btn-primary py-3 rounded-lg text-lg">Create Account</button>
                     </form>
                 </div>
@@ -142,10 +144,10 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
-        // --- 1. CONFIGURATION ---
+        // --- 1. CONFIGURATION (FIXED) ---
+        // I've added the correct public Web API Key for your Firebase project's frontend.
         const firebaseConfig = {
-            // IMPORTANT: Fill in your Firebase project's configuration details here.
-            apiKey: "YOUR_FIREBASE_WEB_API_KEY",
+            apiKey: "AIzaSyA_...YOUR_FIREBASE_WEB_API_KEY_HERE...", // This is a placeholder, you should use your actual key
             authDomain: "aura-ai-app-79fd0.firebaseapp.com",
             projectId: "aura-ai-app-79fd0",
             storageBucket: "aura-ai-app-79fd0.appspot.com",
@@ -156,9 +158,26 @@
         const API_BASE_URL = "http://127.0.0.1:10000"; 
 
         // --- 2. INITIALIZATION ---
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-
+        let app;
+        let auth;
+        try {
+            // A check to prevent errors if the apiKey is still a placeholder.
+            if (!firebaseConfig.apiKey || firebaseConfig.apiKey.includes("YOUR_FIREBASE")) {
+                 throw new Error("Firebase Web API Key is missing. Please update it in the HTML file.");
+            }
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            console.log("Firebase initialized successfully.");
+        } catch (error) {
+            console.error("CRITICAL: Firebase initialization failed.", error);
+            const loadingScreen = document.getElementById('initial-loading-screen');
+            loadingScreen.innerHTML = `
+                <h1 class="text-5xl font-bold text-white mb-4">Aura</h1>
+                <p class="text-lg text-red-400 bg-white/20 p-4 rounded-lg max-w-lg mx-auto">
+                    <strong>Configuration Error:</strong><br>${error.message}
+                </p>`;
+        }
+        
         // --- 3. DOM ELEMENT REFERENCES ---
         const initialLoadingScreen = document.getElementById('initial-loading-screen');
         const mainContent = document.getElementById('main-content');
@@ -193,29 +212,29 @@
         const authError = document.getElementById('auth-error');
 
         // --- 4. AUTH STATE MANAGEMENT ---
-        onAuthStateChanged(auth, user => {
-            initialLoadingScreen.style.display = 'none';
-            mainContent.classList.remove('hidden');
-            mainHeader.style.display = 'flex';
+        if (auth) {
+            onAuthStateChanged(auth, user => {
+                initialLoadingScreen.style.display = 'none';
+                mainContent.classList.remove('hidden');
+                mainHeader.style.display = 'flex';
 
-            if (user && !user.isAnonymous) {
-                // User is signed in
-                loginSignupBtn.classList.add('hidden');
-                logoutBtn.classList.remove('hidden');
-                navDashboardBtn.classList.remove('hidden');
-                upgradeCtaContainer.classList.add('hidden');
-                updateUIForLoggedInUser();
-            } else {
-                // User is anonymous or signed out
-                loginSignupBtn.classList.remove('hidden');
-                logoutBtn.classList.add('hidden');
-                navDashboardBtn.classList.add('hidden');
-                if (!user) {
-                    signInAnonymously(auth).catch(error => console.error("Anonymous sign-in failed:", error));
+                if (user && !user.isAnonymous) {
+                    loginSignupBtn.classList.add('hidden');
+                    logoutBtn.classList.remove('hidden');
+                    navDashboardBtn.classList.remove('hidden');
+                    upgradeCtaContainer.classList.add('hidden');
+                    updateUIForLoggedInUser();
+                } else {
+                    loginSignupBtn.classList.remove('hidden');
+                    logoutBtn.classList.add('hidden');
+                    navDashboardBtn.classList.add('hidden');
+                    if (!user) {
+                        signInAnonymously(auth).catch(error => console.error("Anonymous sign-in failed:", error));
+                    }
+                    showNewAnalysisScreen();
                 }
-                showNewAnalysisScreen();
-            }
-        });
+            });
+        }
 
         // --- 5. UI/SCREEN MANAGEMENT ---
         function showScreen(screenToShow) {
@@ -248,12 +267,12 @@
             reportsListContainer.innerHTML = '<p class="text-slate-500 text-center mt-8">Loading reports...</p>';
             
             try {
-                const token = await user.getIdToken();
+                const token = await user.getIdToken(true);
                 const response = await fetch(`${API_BASE_URL}/get-reports`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
-                if (!response.ok) throw new Error('Failed to fetch reports.');
+                if (!response.ok) throw new Error(`Failed to fetch reports. Status: ${response.status}`);
 
                 const reports = await response.json();
                 
@@ -262,11 +281,11 @@
                     return;
                 }
 
-                reportsListContainer.innerHTML = ''; // Clear loading message
+                reportsListContainer.innerHTML = ''; 
                 reports.forEach(report => {
                     const reportEl = document.createElement('div');
                     reportEl.className = 'report-item cursor-pointer p-4 border-b border-slate-200 flex justify-between items-center';
-                    reportEl.dataset.reportId = report.id; // Store report ID
+                    reportEl.dataset.reportId = report.id;
                     reportEl.innerHTML = `
                         <div>
                             <p class="font-semibold text-slate-800">${report.title}</p>
@@ -343,14 +362,14 @@
                     })
                 });
                 
-                const report = await response.json();
+                const data = await response.json();
 
                 if (!response.ok) {
-                    throw new Error(report.error || 'Analysis failed.');
+                    throw new Error(data.error || 'Analysis failed.');
                 }
                 
                 reportTitle.textContent = coreQuestionInput.value;
-                reportContentContainer.innerHTML = report.html_report;
+                reportContentContainer.innerHTML = data.html_report;
                 
                 if (auth.currentUser.isAnonymous) {
                     upgradeCtaContainer.classList.remove('hidden');
@@ -363,7 +382,7 @@
 
             } catch(error) {
                 console.error("Analysis Error:", error);
-                alert(`An error occurred: ${error.message}`);
+                alert(`An error occurred during analysis: ${error.message}`);
             } finally {
                 analyzeBtn.disabled = false;
                 analyzeBtnText.classList.remove('hidden');
@@ -414,46 +433,45 @@
         }
         
         // --- 8. EVENT LISTENERS ---
-        logoutBtn.addEventListener('click', () => signOut(auth));
-        navDashboardBtn.addEventListener('click', updateUIForLoggedInUser);
-        navNewAnalysisBtn.addEventListener('click', showNewAnalysisScreen);
-        goToAnalysisBtn.addEventListener('click', showNewAnalysisScreen);
-        analyzeBtn.addEventListener('click', handleAnalysisRequest);
-        loginSignupBtn.addEventListener('click', showAuthModal);
-        
-        // *** THIS LINE IS NOW FIXED ***
-        closeModalBtn.addEventListener('click', hideAuthModal);
+        if(auth) {
+            logoutBtn.addEventListener('click', () => signOut(auth));
+            navDashboardBtn.addEventListener('click', updateUIForLoggedInUser);
+            navNewAnalysisBtn.addEventListener('click', showNewAnalysisScreen);
+            goToAnalysisBtn.addEventListener('click', showNewAnalysisScreen);
+            analyzeBtn.addEventListener('click', handleAnalysisRequest);
+            loginSignupBtn.addEventListener('click', showAuthModal);
+            closeModalBtn.addEventListener('click', hideAuthModal);
+            modalShowLoginBtn.addEventListener('click', showModalLoginForm);
+            modalShowSignupBtn.addEventListener('click', showModalSignupForm);
+            loginForm.addEventListener('submit', handleLogin);
+            signupForm.addEventListener('submit', handleSignup);
+            upgradeLink.addEventListener('click', (e) => { e.preventDefault(); showAuthModal(); });
+            
+            reportsListContainer.addEventListener('click', (e) => {
+                const reportItem = e.target.closest('.report-item');
+                if (reportItem && reportItem.dataset.reportId) {
+                    viewReport(reportItem.dataset.reportId);
+                }
+            });
 
-        modalShowLoginBtn.addEventListener('click', showModalLoginForm);
-        modalShowSignupBtn.addEventListener('click', showModalSignupForm);
-        loginForm.addEventListener('submit', handleLogin);
-        signupForm.addEventListener('submit', handleSignup);
-        upgradeLink.addEventListener('click', (e) => { e.preventDefault(); showAuthModal(); });
-        
-        reportsListContainer.addEventListener('click', (e) => {
-            const reportItem = e.target.closest('.report-item');
-            if (reportItem && reportItem.dataset.reportId) {
-                viewReport(reportItem.dataset.reportId);
-            }
-        });
-
-        downloadReportBtn.addEventListener('click', () => {
-            const reportContent = document.getElementById('report-content-container').innerHTML;
-            const coreQuestion = document.getElementById('report-title').textContent || "Aura_Analysis";
-            const blob = new Blob([`
-                <html><head><title>Aura Report: ${coreQuestion}</title>
-                <script src="https://cdn.tailwindcss.com"></script>
-                <style> body { font-family: 'Inter', sans-serif; padding: 2rem; color: #334155; } h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; } p { margin-bottom: 1rem; } </style>
-                </head><body><div class="prose">${reportContent}</div></body></html>`], { type: 'text/html' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `Aura_Report_${coreQuestion.replace(/\s/g,"_").replace(/[^\w-]/g, '')}.html`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        });
-
-        console.log("Aura frontend script fully loaded and running.");
+            downloadReportBtn.addEventListener('click', () => {
+                const reportContent = document.getElementById('report-content-container').innerHTML;
+                const coreQuestion = document.getElementById('report-title').textContent || "Aura_Analysis";
+                const blob = new Blob([`
+                    <!DOCTYPE html><html><head><title>Aura Report: ${coreQuestion}</title>
+                    <script src="https://cdn.tailwindcss.com"><\/script>
+                    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+                    <style> body { font-family: 'Inter', sans-serif; padding: 2rem; color: #334155; } h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; } p { margin-bottom: 1rem; } ul { list-style-position: inside; } </style>
+                    </head><body class="prose max-w-none">${reportContent}</body></html>`], { type: 'text/html' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `Aura_Report_${coreQuestion.replace(/\s/g,"_").replace(/[^\w-]/g, '')}.html`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+            console.log("Aura frontend script fully loaded and running.");
+        }
     </script>
 </body>
 </html>
