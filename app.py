@@ -10,6 +10,7 @@ Firebase Authentication.
 import os
 import json
 from functools import wraps
+import io
 
 import google.generativeai as genai
 from flask import Flask, request, jsonify
@@ -18,6 +19,7 @@ import firebase_admin
 from firebase_admin import credentials, auth, firestore
 from google.api_core import exceptions as google_exceptions
 from dotenv import load_dotenv
+from PIL import Image
 
 # --- 1. CORE APPLICATION SETUP ---
 load_dotenv()  # Load environment variables from .env for local development
@@ -94,37 +96,51 @@ def token_required(f):
 @token_required
 def analyze_relationship(uid):
     """
-    Analyzes a user-submitted narrative using the Gemini API and saves the report.
+    Analyzes a user-submitted narrative and optional image using the Gemini API 
+    and saves the report. Handles multipart/form-data.
     """
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Invalid request body."}), 400
+    # Check if the post request has the file part
+    if 'narrative' not in request.form or 'core_question' not in request.form:
+        return jsonify({"error": "Narrative and core question are required."}), 400
 
-    narrative = data.get("narrative", "")
-    core_question = data.get("core_question")
-    report_details = data.get("report_details", [])
+    narrative = request.form.get("narrative", "")
+    core_question = request.form.get("core_question")
+    # Report details are sent as a JSON string, so we need to parse them.
+    report_details_str = request.form.get("report_details", "[]")
+    report_details = json.loads(report_details_str)
+    
+    image_file = request.files.get('media')
 
     if not core_question or not narrative:
         return jsonify({"error": "Narrative and core question are required."}), 400
 
     try:
-        model = genai.GenerativeModel("gemini-pro")
+        # Use the multimodal model if an image is provided
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        
+        prompt_parts = [
+            "As an expert relationship analyst AI named Aura, generate a comprehensive report in HTML format.",
+            f"The user wants to understand the following situation.",
+            f"**Core Question:** {core_question}",
+            f"**User's Narrative:** \"{narrative}\"",
+            f"**Requested Analysis Points:** {', '.join(report_details)}",
+            "**Instructions:**",
+            "1.  Structure the response as a clean, well-formatted HTML document. Use headings (<h3>), paragraphs (<p>), and lists (<ul>, <li>).",
+            "2.  Directly address the user's Core Question with a clear, summary answer first.",
+            "3.  For each requested analysis point, create a dedicated section.",
+            "4.  Provide insightful, empathetic, and actionable advice. Maintain a supportive and objective tone.",
+            "5.  Do not include `<html>`, `<head>`, or `<body>` tags. Only provide the inner content for a div."
+        ]
+        
+        if image_file:
+            # Open the image file and add it to the prompt
+            img = Image.open(image_file.stream)
+            prompt_parts.append("\n**Image Analysis:** Analyze the attached image in the context of the user's narrative and question.")
+            prompt_parts.append(img)
 
-        prompt = f"""
-        As an expert relationship analyst AI named Aura, generate a comprehensive report in HTML format.
-        The user wants to understand the following situation.
-        **Core Question:** {core_question}
-        **User's Narrative:** "{narrative}"
-        **Requested Analysis Points:** {', '.join(report_details)}
-        **Instructions:**
-        1.  Structure the response as a clean, well-formatted HTML document. Use headings (<h3>), paragraphs (<p>), and lists (<ul>, <li>).
-        2.  Directly address the user's Core Question with a clear, summary answer first.
-        3.  For each requested analysis point, create a dedicated section.
-        4.  Provide insightful, empathetic, and actionable advice. Maintain a supportive and objective tone.
-        5.  Do not include `<html>`, `<head>`, or `<body>` tags. Only provide the inner content for a div.
-        """
+        final_prompt = "\n".join(prompt_parts)
 
-        response = model.generate_content(prompt)
+        response = model.generate_content(prompt_parts)
         html_report = response.text
 
         report_data = {
