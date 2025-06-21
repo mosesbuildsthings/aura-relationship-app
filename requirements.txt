@@ -4,3 +4,4 @@ google-generativeai
 gunicorn
 firebase-admin
 google-cloud-firestore
+python-dotenv
