@@ -11,7 +11,7 @@
     <style>
         body { 
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #818cf8, #fbbf24, #f87171); /* UPDATED THEME: Sunny, Warm */
+            background: linear-gradient(135deg, #818cf8, #fbbf24, #f87171); /* Sunny, Warm Theme */
             background-attachment: fixed;
         }
         .screen { display: none; }
@@ -31,11 +31,7 @@
             background-color: #3B82F6; color: white; border-color: #3B82F6;
         }
         .chiclet-checkbox span { transition: all 0.2s ease-in-out; }
-        .file-input-wrapper {
-            border: 2px dashed #9ca3af; transition: all 0.2s ease-in-out;
-        }
-        .file-input-wrapper:hover { background-color: rgba(59, 130, 246, 0.05); border-color: #3B82F6; }
-        .file-input-wrapper.file-selected { border-color: #10B981; background-color: rgba(16, 185, 129, 0.05); }
+        
         .btn-primary {
             background-color: #F59E0B; color: #1e293b; font-weight: 600; box-shadow: 0 4px 14px 0 rgba(0,0,0,0.1); transition: all 0.3s ease-in-out;
         }
@@ -43,7 +39,6 @@
         .btn-secondary { background-color: #475569; color: white; }
         .btn-secondary:hover { background-color: #1e293b; }
 
-        /* Style for report items in the dashboard */
         .report-item { transition: all 0.2s ease-in-out; }
         .report-item:hover { background-color: #f1f5f9; transform: translateX(5px); }
     </style>
@@ -105,7 +100,7 @@
             <div id="report-display-screen" class="screen main-panel p-8 rounded-xl shadow-xl">
                  <div id="upgrade-cta-container" class="hidden bg-amber-100 border-l-4 border-amber-500 text-amber-800 p-4 mb-6 rounded-lg">
                      <p class="font-bold">This is a temporary analysis.</p>
-                     <p>To save this report and get increasingly personalized insights, <a href="#" id="upgrade-link" class="underline font-semibold hover:text-amber-900">create a free account</a>. Your future reports will be tailored based on your history.</p>
+                     <p>To save this report and get increasingly personalized insights, <a href="#" id="upgrade-link" class="underline font-semibold hover:text-amber-900">create a free account</a>.</p>
                  </div>
                  <div class="flex justify-between items-start mb-6">
                     <h2 id="report-title" class="text-3xl font-bold text-slate-900">Your Analysis Report</h2>
@@ -117,7 +112,31 @@
     </div>
 
     <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full hidden modal">
-       </div>
+        <div class="relative top-20 mx-auto p-8 border w-full max-w-md shadow-lg rounded-xl main-panel">
+            <button id="close-modal-btn" class="absolute top-0 right-0 mt-4 mr-4 text-slate-400 hover:text-slate-800 text-3xl font-bold">&times;</button>
+            <div class="mt-3">
+                <div class="flex border-b border-slate-300 mb-6">
+                    <button id="modal-show-login-btn" class="flex-1 pb-3 font-semibold text-lg nav-active">Login</button>
+                    <button id="modal-show-signup-btn" class="flex-1 pb-3 font-semibold text-lg text-slate-500">Sign Up</button>
+                </div>
+                <div id="modal-login-form-container">
+                    <form id="login-form" class="space-y-6">
+                        <div><label for="login-email" class="block text-sm font-medium text-slate-700">Email</label><input type="email" id="login-email" required class="mt-1 block w-full p-3 border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"></div>
+                        <div><label for="login-password" class="block text-sm font-medium text-slate-700">Password</label><input type="password" id="login-password" required class="mt-1 block w-full p-3 border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"></div>
+                        <button type="submit" class="w-full btn-primary py-3 rounded-lg text-lg">Login</button>
+                    </form>
+                </div>
+                <div id="modal-signup-form-container" class="hidden">
+                    <form id="signup-form" class="space-y-6">
+                        <div><label for="signup-email" class="block text-sm font-medium text-slate-700">Email</label><input type="email" id="signup-email" required class="mt-1 block w-full p-3 border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"></div>
+                        <div><label for="signup-password" class="block text-sm font-medium text-slate-700">Password</label><input type="password" id="signup-password" required class="mt-1 block w-full p-3 border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"></div>
+                        <button type="submit" class="w-full btn-primary py-3 rounded-lg text-lg">Create Account</button>
+                    </form>
+                </div>
+                <p id="auth-error" class="text-rose-500 text-sm mt-4 text-center hidden"></p>
+            </div>
+        </div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -125,8 +144,7 @@
         
         // --- 1. CONFIGURATION ---
         const firebaseConfig = {
-            // Your Firebase config object
-            // NOTE: While public, managing this via environment variables in a build step is best practice for larger projects.
+            // IMPORTANT: Fill in your Firebase project's configuration details here.
             apiKey: "YOUR_FIREBASE_WEB_API_KEY",
             authDomain: "aura-ai-app-79fd0.firebaseapp.com",
             projectId: "aura-ai-app-79fd0",
@@ -134,14 +152,14 @@
             messagingSenderId: "388382191448",
             appId: "1:388382191448:web:16b533aa82c66251281c2d"
         };
-        const API_BASE_URL = "http://127.0.0.1:10000"; // For local dev. Change to your Render URL for production.
+        // IMPORTANT: Change this URL to your deployed backend URL when you go live.
+        const API_BASE_URL = "http://127.0.0.1:10000"; 
 
         // --- 2. INITIALIZATION ---
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
 
         // --- 3. DOM ELEMENT REFERENCES ---
-        // (Keep all your existing element references here)
         const initialLoadingScreen = document.getElementById('initial-loading-screen');
         const mainContent = document.getElementById('main-content');
         const mainHeader = document.getElementById('main-header');
@@ -152,7 +170,27 @@
         const reportTitle = document.getElementById('report-title');
         const reportContentContainer = document.getElementById('report-content-container');
         const logoutBtn = document.getElementById('logout-btn');
-        // ... all other element refs
+        const loginSignupBtn = document.getElementById('login-signup-btn');
+        const navDashboardBtn = document.getElementById('nav-dashboard-btn');
+        const navNewAnalysisBtn = document.getElementById('nav-new-analysis-btn');
+        const goToAnalysisBtn = document.getElementById('go-to-analysis-btn');
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const analyzeBtnText = document.getElementById('analyze-btn-text');
+        const analyzeSpinner = document.getElementById('analyze-spinner');
+        const upgradeCtaContainer = document.getElementById('upgrade-cta-container');
+        const upgradeLink = document.getElementById('upgrade-link');
+        const downloadReportBtn = document.getElementById('download-report-btn');
+        
+        // Modal References
+        const authModal = document.getElementById('auth-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const modalShowLoginBtn = document.getElementById('modal-show-login-btn');
+        const modalShowSignupBtn = document.getElementById('modal-show-signup-btn');
+        const loginFormContainer = document.getElementById('modal-login-form-container');
+        const signupFormContainer = document.getElementById('modal-signup-form-container');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const authError = document.getElementById('auth-error');
 
         // --- 4. AUTH STATE MANAGEMENT ---
         onAuthStateChanged(auth, user => {
@@ -203,8 +241,6 @@
         }
         
         // --- 6. API CALLS & CORE LOGIC ---
-        
-        // **UPDATED** - Fetches and displays the list of reports for the dashboard
         async function fetchAndDisplayReports() {
             const user = auth.currentUser;
             if (!user) return;
@@ -247,7 +283,6 @@
             }
         }
         
-        // **NEW** - Fetches and displays a single report's content
         async function viewReport(reportId) {
             const user = auth.currentUser;
             if (!user) return;
@@ -266,13 +301,12 @@
                 
                 const report = await response.json();
                 
-                // We get the title from the element on the dashboard we clicked
                 const reportListItem = reportsListContainer.querySelector(`[data-report-id="${reportId}"]`);
                 const titleText = reportListItem ? reportListItem.querySelector('p.font-semibold').textContent : "Analysis Report";
 
                 reportTitle.textContent = titleText;
                 reportContentContainer.innerHTML = report.html_report;
-                upgradeCtaContainer.classList.add('hidden'); // Hide CTA for saved reports
+                upgradeCtaContainer.classList.add('hidden');
 
             } catch (error) {
                 console.error("View Report Error:", error);
@@ -282,13 +316,31 @@
         }
 
         async function handleAnalysisRequest() {
-            // This function's logic is largely unchanged, but points to the working backend
-            // ... (keep existing logic for getting form data)
+            const user = auth.currentUser;
+            if (!user) { alert("Authentication error. Please refresh."); return; }
             
+            const narrativeInput = document.getElementById('narrative');
+            const coreQuestionInput = document.getElementById('core-question');
+            const selectedDetails = Array.from(document.querySelectorAll('#report-details-options input:checked')).map(cb => cb.value);
+
+            if (!narrativeInput.value.trim() || !coreQuestionInput.value.trim()) {
+                alert("Please provide both a narrative and the core question."); return;
+            }
+
+            analyzeBtn.disabled = true;
+            analyzeBtnText.classList.add('hidden');
+            analyzeSpinner.classList.remove('hidden');
+
             try {
-                // ... (keep existing logic for preparing the request)
+                const token = await user.getIdToken();
                 const response = await fetch(`${API_BASE_URL}/analyze`, {
-                    // ... (existing fetch options)
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ 
+                        narrative: narrativeInput.value, 
+                        core_question: coreQuestionInput.value,
+                        report_details: selectedDetails,
+                    })
                 });
                 
                 const report = await response.json();
@@ -297,38 +349,108 @@
                     throw new Error(report.error || 'Analysis failed.');
                 }
                 
-                reportTitle.textContent = coreQuestion.value;
+                reportTitle.textContent = coreQuestionInput.value;
                 reportContentContainer.innerHTML = report.html_report;
                 
                 if (auth.currentUser.isAnonymous) {
                     upgradeCtaContainer.classList.remove('hidden');
                 } else {
                     upgradeCtaContainer.classList.add('hidden');
-                    // After a successful new analysis, refresh the dashboard data in the background
                     fetchAndDisplayReports(); 
                 }
                 
                 showScreen(reportDisplayScreen);
 
             } catch(error) {
-                // ... (existing error handling)
+                console.error("Analysis Error:", error);
+                alert(`An error occurred: ${error.message}`);
             } finally {
-                // ... (existing finally block)
+                analyzeBtn.disabled = false;
+                analyzeBtnText.classList.remove('hidden');
+                analyzeSpinner.classList.add('hidden');
             }
         }
 
-        // --- 7. AUTH MODAL LOGIC (Unchanged) ---
-        // All modal functions (showAuthModal, handleLogin, etc.) remain the same.
-
-        // --- 8. EVENT LISTENERS ---
-        // (Keep existing listeners for logout, nav, analyze, modal, etc.)
+        // --- 7. AUTH MODAL LOGIC ---
+        function showAuthModal() { authModal.classList.remove('hidden'); }
+        function hideAuthModal() { authModal.classList.add('hidden'); authError.classList.add('hidden'); }
+        function showModalLoginForm() {
+            loginFormContainer.classList.remove('hidden');
+            signupFormContainer.classList.add('hidden');
+            modalShowLoginBtn.classList.add('nav-active');
+            modalShowSignupBtn.classList.remove('nav-active');
+            authError.classList.add('hidden');
+        }
+        function showModalSignupForm() {
+            signupFormContainer.classList.remove('hidden');
+            loginFormContainer.classList.add('hidden');
+            modalShowSignupBtn.classList.add('nav-active');
+            modalShowLoginBtn.classList.remove('nav-active');
+            authError.classList.add('hidden');
+        }
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = loginForm['login-email'].value;
+            const password = loginForm['login-password'].value;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                hideAuthModal();
+            } catch (error) {
+                authError.textContent = "Invalid email or password. Please try again.";
+                authError.classList.remove('hidden');
+            }
+        }
+        async function handleSignup(e) {
+            e.preventDefault();
+            const email = signupForm['signup-email'].value;
+            const password = signupForm['signup-password'].value;
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                hideAuthModal();
+            } catch (error) {
+                authError.textContent = error.message.replace('Firebase: ', '');
+                authError.classList.remove('hidden');
+            }
+        }
         
-        // **UPDATED** - Use event delegation for clicking on report items
+        // --- 8. EVENT LISTENERS ---
+        logoutBtn.addEventListener('click', () => signOut(auth));
+        navDashboardBtn.addEventListener('click', updateUIForLoggedInUser);
+        navNewAnalysisBtn.addEventListener('click', showNewAnalysisScreen);
+        goToAnalysisBtn.addEventListener('click', showNewAnalysisScreen);
+        analyzeBtn.addEventListener('click', handleAnalysisRequest);
+        loginSignupBtn.addEventListener('click', showAuthModal);
+        
+        // *** THIS LINE IS NOW FIXED ***
+        closeModalBtn.addEventListener('click', hideAuthModal);
+
+        modalShowLoginBtn.addEventListener('click', showModalLoginForm);
+        modalShowSignupBtn.addEventListener('click', showModalSignupForm);
+        loginForm.addEventListener('submit', handleLogin);
+        signupForm.addEventListener('submit', handleSignup);
+        upgradeLink.addEventListener('click', (e) => { e.preventDefault(); showAuthModal(); });
+        
         reportsListContainer.addEventListener('click', (e) => {
             const reportItem = e.target.closest('.report-item');
             if (reportItem && reportItem.dataset.reportId) {
                 viewReport(reportItem.dataset.reportId);
             }
+        });
+
+        downloadReportBtn.addEventListener('click', () => {
+            const reportContent = document.getElementById('report-content-container').innerHTML;
+            const coreQuestion = document.getElementById('report-title').textContent || "Aura_Analysis";
+            const blob = new Blob([`
+                <html><head><title>Aura Report: ${coreQuestion}</title>
+                <script src="https://cdn.tailwindcss.com"></script>
+                <style> body { font-family: 'Inter', sans-serif; padding: 2rem; color: #334155; } h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; } p { margin-bottom: 1rem; } </style>
+                </head><body><div class="prose">${reportContent}</div></body></html>`], { type: 'text/html' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Aura_Report_${coreQuestion.replace(/\s/g,"_").replace(/[^\w-]/g, '')}.html`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         });
 
         console.log("Aura frontend script fully loaded and running.");
