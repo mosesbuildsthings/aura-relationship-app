@@ -7,9 +7,6 @@ narratives using Google's Gemini API and to save/retrieve reports
 from a Cloud Firestore database. It handles user authentication via
 Firebase Authentication.
 """
-# Aura Backend - Final Production Version
-# This version is configured to run on a live server like Render.
-
 import os
 import json
 from functools import wraps
@@ -25,9 +22,7 @@ from dotenv import load_dotenv
 # --- 1. CORE APPLICATION SETUP ---
 load_dotenv()  # Load environment variables from .env for local development
 app = Flask(__name__)
-# Configure CORS to allow requests from your frontend's domain
-# For production, you should restrict this to your actual frontend URL
-CORS(app)
+CORS(app) # Configure CORS
 
 # --- 2. SECURE CONFIGURATION & INITIALIZATION ---
 db = None
@@ -82,14 +77,11 @@ def token_required(f):
             return jsonify({"error": "Authentication token is missing!"}), 401
 
         try:
-            # Verify the token using the Firebase Admin SDK
             decoded_token = auth.verify_id_token(token)
-            # Pass the user's unique ID (uid) to the decorated function
             kwargs["uid"] = decoded_token["uid"]
         except auth.InvalidIdTokenError:
             return jsonify({"error": "Invalid authentication token!"}), 403
         except Exception as e:
-            # Catch any other unexpected errors during auth verification
             return jsonify({"error": f"Authentication error: {e}"}), 500
 
         return f(*args, **kwargs)
@@ -98,19 +90,11 @@ def token_required(f):
 
 
 # --- 4. API ENDPOINTS ---
-
-
 @app.route("/analyze", methods=["POST"])
 @token_required
 def analyze_relationship(uid):
     """
     Analyzes a user-submitted narrative using the Gemini API and saves the report.
-
-    Args:
-        uid (str): The authenticated user's ID from the token_required decorator.
-
-    Returns:
-        JSON: The generated HTML report or an error message.
     """
     data = request.get_json()
     if not data:
@@ -129,18 +113,13 @@ def analyze_relationship(uid):
         prompt = f"""
         As an expert relationship analyst AI named Aura, generate a comprehensive report in HTML format.
         The user wants to understand the following situation.
-
         **Core Question:** {core_question}
-
-        **User's Narrative:**
-        "{narrative}"
-
+        **User's Narrative:** "{narrative}"
         **Requested Analysis Points:** {', '.join(report_details)}
-
         **Instructions:**
         1.  Structure the response as a clean, well-formatted HTML document. Use headings (<h3>), paragraphs (<p>), and lists (<ul>, <li>).
         2.  Directly address the user's Core Question with a clear, summary answer first.
-        3.  For each requested analysis point (e.g., "Communication Patterns", "Emotional Tone"), create a dedicated section.
+        3.  For each requested analysis point, create a dedicated section.
         4.  Provide insightful, empathetic, and actionable advice. Maintain a supportive and objective tone.
         5.  Do not include `<html>`, `<head>`, or `<body>` tags. Only provide the inner content for a div.
         """
@@ -175,12 +154,6 @@ def analyze_relationship(uid):
 def get_reports(uid):
     """
     Retrieves a list of all reports for the authenticated user.
-
-    Args:
-        uid (str): The authenticated user's ID.
-
-    Returns:
-        JSON: A list of the user's reports or an error message.
     """
     try:
         user_reports_ref = db.collection("users").document(uid).collection("reports")
@@ -214,13 +187,6 @@ def get_reports(uid):
 def get_report(uid, report_id):
     """
     Retrieves the HTML content of a single, specific report.
-
-    Args:
-        uid (str): The authenticated user's ID.
-        report_id (str): The ID of the report to retrieve.
-
-    Returns:
-        JSON: The report's HTML content or an error message.
     """
     try:
         report_ref = (
