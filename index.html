@@ -50,6 +50,41 @@
             border-color: #F59E0B;
             color: #F59E0B;
         }
+        /* Style for media preview container */
+        #media-preview-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .preview-item {
+            position: relative;
+        }
+        .preview-item img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+        }
+        .remove-media-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border-radius: 50%;
+            width: 1.5rem;
+            height: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+        }
+        .preview-item:hover .remove-media-btn {
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="text-slate-800">
@@ -95,14 +130,15 @@
                  
                  <div class="mb-8">
                     <label for="media-upload" class="block text-lg font-medium mb-2">Upload Media (Optional)</label>
-                    <input type="file" id="media-upload" class="hidden" accept="image/*">
+                    <!-- MODIFICATION: Add 'multiple' attribute to allow multiple file selection -->
+                    <input type="file" id="media-upload" class="hidden" accept="image/*" multiple>
                     <label for="media-upload" id="media-upload-label" class="flex justify-center w-full h-32 px-4 transition bg-white border-2 border-slate-300 rounded-lg appearance-none cursor-pointer">
                         <span id="upload-prompt" class="flex items-center space-x-2 text-slate-500">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-4-4V6a4 4 0 014-4h4a4 4 0 014 4v6m-4-2h4m-4 6H7a4 4 0 00-4 4v1a2 2 0 002 2h10a2 2 0 002-2v-1a4 4 0 00-4-4H7z" /></svg>
-                            <span class="font-medium">Drop an image here or click to upload</span>
+                            <span class="font-medium">Drop images here or click to upload</span>
                         </span>
                     </label>
-                    <div id="media-preview-container" class="mt-4 hidden"></div>
+                    <div id="media-preview-container"></div>
                  </div>
 
                  <div class="mb-8">
@@ -186,6 +222,9 @@
         // --- 2. INITIALIZATION ---
         let app;
         let auth;
+        // MODIFICATION: Store uploaded files in an array
+        let uploadedFiles = [];
+
         try {
             if (!firebaseConfig.apiKey || firebaseConfig.apiKey.includes("YOUR_FIREBASE")) {
                  throw new Error("Firebase Web API Key is missing. Please update it in the HTML file.");
@@ -228,7 +267,6 @@
         const mediaPreviewContainer = document.getElementById('media-preview-container');
         const mediaUploadLabel = document.getElementById('media-upload-label');
         const uploadPrompt = document.getElementById('upload-prompt');
-        
         
         // Modal References
         const authModal = document.getElementById('auth-modal');
@@ -371,7 +409,6 @@
             const narrativeInput = document.getElementById('narrative');
             const coreQuestionInput = document.getElementById('core-question');
             const selectedDetails = Array.from(document.querySelectorAll('#report-details-options input:checked')).map(cb => cb.value);
-            const mediaFile = mediaUploadInput.files[0];
 
             if (!narrativeInput.value.trim() || !coreQuestionInput.value.trim()) {
                 alert("Please provide both a narrative and the core question."); return;
@@ -382,22 +419,20 @@
             analyzeSpinner.classList.remove('hidden');
 
             try {
-                // Use FormData to send both text and file data.
                 const formData = new FormData();
                 formData.append('narrative', narrativeInput.value);
                 formData.append('core_question', coreQuestionInput.value);
-                // We must stringify the array to send it via FormData.
                 formData.append('report_details', JSON.stringify(selectedDetails));
-                if (mediaFile) {
-                    formData.append('media', mediaFile);
-                }
+                
+                // MODIFICATION: Append all uploaded files to FormData
+                uploadedFiles.forEach(file => {
+                    formData.append('media', file);
+                });
                 
                 const token = await user.getIdToken();
                 const response = await fetch(`${API_BASE_URL}/analyze`, {
                     method: 'POST',
                     headers: { 
-                        // Note: When using FormData with fetch, you do NOT set the 
-                        // 'Content-Type' header. The browser does it automatically.
                         'Authorization': `Bearer ${token}` 
                     },
                     body: formData
@@ -473,27 +508,50 @@
             }
         }
         
+        // MODIFICATION: Handle multiple file uploads and previews
         mediaUploadInput.addEventListener('change', () => {
-            const file = mediaUploadInput.files[0];
-            if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    uploadPrompt.classList.add('hidden');
-                    mediaPreviewContainer.classList.remove('hidden');
-                    mediaPreviewContainer.innerHTML = `
-                        <div class="relative group">
-                            <img src="${e.target.result}" class="rounded-lg object-cover h-32 w-full" alt="Image preview">
-                            <button id="remove-media-btn" class="absolute top-2 right-2 bg-black bg-opacity-50 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">&times;</button>
-                        </div>`;
-                    document.getElementById('remove-media-btn').addEventListener('click', () => {
-                        mediaUploadInput.value = '';
-                        mediaPreviewContainer.innerHTML = '';
-                        mediaPreviewContainer.classList.add('hidden');
-                        uploadPrompt.classList.remove('hidden');
-                    });
-                };
-                reader.readAsDataURL(file);
+            const files = mediaUploadInput.files;
+            if (files.length > 0) {
+                uploadPrompt.parentElement.classList.add('hidden');
             }
+
+            for (const file of files) {
+                if (file.type.startsWith('image/')) {
+                    uploadedFiles.push(file);
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const previewItem = document.createElement('div');
+                        previewItem.className = 'preview-item';
+                        
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.alt = 'Image preview';
+                        
+                        const removeBtn = document.createElement('button');
+                        removeBtn.className = 'remove-media-btn';
+                        removeBtn.innerHTML = '&times;';
+                        
+                        previewItem.appendChild(img);
+                        previewItem.appendChild(removeBtn);
+                        mediaPreviewContainer.appendChild(previewItem);
+                        
+                        removeBtn.addEventListener('click', () => {
+                            // Remove from array and DOM
+                            const index = uploadedFiles.indexOf(file);
+                            if (index > -1) {
+                                uploadedFiles.splice(index, 1);
+                            }
+                            mediaPreviewContainer.removeChild(previewItem);
+                            if (uploadedFiles.length === 0) {
+                                uploadPrompt.parentElement.classList.remove('hidden');
+                            }
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+            // Clear the input so the same files can be selected again if removed
+            mediaUploadInput.value = '';
         });
 
         // --- 8. EVENT LISTENERS ---
