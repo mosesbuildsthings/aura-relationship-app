@@ -130,7 +130,6 @@
                  
                  <div class="mb-8">
                     <label for="media-upload" class="block text-lg font-medium mb-2">Upload Media (Optional)</label>
-                    <!-- MODIFICATION: Add 'multiple' attribute to allow multiple file selection -->
                     <input type="file" id="media-upload" class="hidden" accept="image/*" multiple>
                     <label for="media-upload" id="media-upload-label" class="flex justify-center w-full h-32 px-4 transition bg-white border-2 border-slate-300 rounded-lg appearance-none cursor-pointer">
                         <span id="upload-prompt" class="flex items-center space-x-2 text-slate-500">
@@ -217,12 +216,13 @@
             messagingSenderId: "388382191448",
             appId: "1:388382191448:web:16b533aa82c66251281c2d"
         };
-        const API_BASE_URL = "http://127.0.0.1:10000"; 
+        
+        // MODIFICATION: URL updated with your live backend service address.
+        const API_BASE_URL = "https://aura-backend-51f1.onrender.com";
 
         // --- 2. INITIALIZATION ---
         let app;
         let auth;
-        // MODIFICATION: Store uploaded files in an array
         let uploadedFiles = [];
 
         try {
@@ -424,7 +424,6 @@
                 formData.append('core_question', coreQuestionInput.value);
                 formData.append('report_details', JSON.stringify(selectedDetails));
                 
-                // MODIFICATION: Append all uploaded files to FormData
                 uploadedFiles.forEach(file => {
                     formData.append('media', file);
                 });
@@ -508,7 +507,6 @@
             }
         }
         
-        // MODIFICATION: Handle multiple file uploads and previews
         mediaUploadInput.addEventListener('change', () => {
             const files = mediaUploadInput.files;
             if (files.length > 0) {
@@ -536,7 +534,6 @@
                         mediaPreviewContainer.appendChild(previewItem);
                         
                         removeBtn.addEventListener('click', () => {
-                            // Remove from array and DOM
                             const index = uploadedFiles.indexOf(file);
                             if (index > -1) {
                                 uploadedFiles.splice(index, 1);
@@ -550,7 +547,6 @@
                     reader.readAsDataURL(file);
                 }
             }
-            // Clear the input so the same files can be selected again if removed
             mediaUploadInput.value = '';
         });
 
