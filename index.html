@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,49 +8,88 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-primary': '#6366F1',
+                        'brand-secondary': '#A78BFA',
+                        'gray-900': '#111827',
+                        'gray-800': '#1F2937',
+                        'gray-700': '#374151',
+                        'gray-600': '#4B5563',
+                        'gray-400': '#9CA3AF',
+                        'gray-200': '#E5E7EB',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         body { 
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #06b6d4, #fbbf24, #f97316); 
+            background-color: #000000;
+            background-image: radial-gradient(at 27% 37%, hsla(215, 98%, 61%, 0.1) 0px, transparent 50%),
+                              radial-gradient(at 97% 21%, hsla(125, 98%, 72%, 0.1) 0px, transparent 50%),
+                              radial-gradient(at 52% 99%, hsla(355, 98%, 61%, 0.1) 0px, transparent 50%),
+                              radial-gradient(at 10% 29%, hsla(256, 96%, 61%, 0.1) 0px, transparent 50%),
+                              radial-gradient(at 97% 96%, hsla(38, 60%, 74%, 0.1) 0px, transparent 50%),
+                              radial-gradient(at 33% 50%, hsla(222, 67%, 73%, 0.1) 0px, transparent 50%),
+                              radial-gradient(at 79% 53%, hsla(343, 68%, 79%, 0.1) 0px, transparent 50%);
             background-attachment: fixed;
         }
         .screen { display: none; }
         .visible { display: block; }
-        .nav-active { color: #0f172a; border-bottom-width: 2px; border-color: #F59E0B; }
+        .nav-active { color: white; border-bottom-width: 2px; border-color: #6366F1; }
         .modal { z-index: 50; }
-        .loader { border-top-color: #F59E0B; -webkit-animation: spin 1s linear infinite; animation: spin 1s linear infinite; }
+        .loader { border-top-color: #6366F1; -webkit-animation: spin 1s linear infinite; animation: spin 1s linear infinite; }
         @-webkit-keyframes spin { 0% { -webkit-transform: rotate(0deg); } 100% { -webkit-transform: rotate(360deg); } }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         .main-panel {
-            background-color: rgba(255, 255, 255, 0.90);
-            -webkit-backdrop-filter: blur(12px);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background-color: rgba(17, 24, 39, 0.8);
+            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .chiclet-checkbox input:checked + span {
-            background-color: #3B82F6; color: white; border-color: #3B82F6;
+            background-color: #6366F1; color: white; border-color: #6366F1;
         }
         .chiclet-checkbox span { transition: all 0.2s ease-in-out; }
         
         .btn-primary {
-            background-color: #F59E0B; color: #1e293b; font-weight: 600; box-shadow: 0 4px 14px 0 rgba(0,0,0,0.1); transition: all 0.3s ease-in-out;
+            background-color: #6366F1; color: white; font-weight: 600; 
+            box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.25); 
+            transition: all 0.3s ease-in-out;
         }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px 0 rgba(0,0,0,0.15); }
-        .btn-secondary { background-color: #475569; color: white; }
-        .btn-secondary:hover { background-color: #1e293b; }
+        .btn-primary:hover { background-color: #4F46E5; transform: translateY(-2px); box-shadow: 0 6px 20px 0 rgba(99, 102, 241, 0.3); }
+        .btn-secondary { background-color: #374151; color: white; }
+        .btn-secondary:hover { background-color: #4B5563; }
 
-        .report-item { transition: all 0.2s ease-in-out; }
-        .report-item:hover { background-color: #f1f5f9; transform: translateX(5px); }
+        .report-item { transition: all 0.2s ease-in-out; border-color: #374151; }
+        .report-item:hover { background-color: #1F2937; border-left-color: #6366F1; transform: translateX(5px); }
+        
+        input, textarea {
+            background-color: #1F2937;
+            border-color: #374151;
+        }
+        input:focus, textarea:focus {
+            background-color: #111827;
+            border-color: #6366F1;
+            --tw-ring-color: #6366F1;
+        }
 
         #media-upload-label {
             border-style: dashed;
+            border-color: #4B5563;
+            background-color: rgba(31, 41, 55, 0.5);
         }
         #media-upload-label:hover {
-            border-color: #F59E0B;
-            color: #F59E0B;
+            border-color: #6366F1;
+            color: #6366F1;
         }
-        /* Style for media preview container */
         #media-preview-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -70,7 +109,7 @@
             position: absolute;
             top: 0.5rem;
             right: 0.5rem;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.7);
             color: white;
             border-radius: 50%;
             width: 1.5rem;
@@ -87,33 +126,33 @@
         }
     </style>
 </head>
-<body class="text-slate-800">
+<body class="text-gray-200">
 
     <div id="app-container" class="max-w-4xl mx-auto p-4 md:p-6">
         
         <header id="main-header" class="hidden items-center justify-between mb-8 p-4 rounded-xl main-panel shadow-lg">
             <div class="flex items-center gap-4">
-                 <h1 class="text-3xl font-bold text-slate-900">Aura</h1>
+                 <h1 class="text-3xl font-bold text-white">Aura</h1>
                  <nav id="main-nav" class="flex items-center gap-4">
-                    <button id="nav-dashboard-btn" class="hidden font-semibold text-slate-500 hover:text-slate-900 py-2 px-3 rounded-md transition-colors">Dashboard</button>
-                    <button id="nav-new-analysis-btn" class="font-semibold text-slate-500 hover:text-slate-900 py-2 px-3 rounded-md transition-colors">New Analysis</button>
+                    <button id="nav-dashboard-btn" class="hidden font-semibold text-gray-400 hover:text-white py-2 px-3 rounded-md transition-colors">Dashboard</button>
+                    <button id="nav-new-analysis-btn" class="font-semibold text-gray-400 hover:text-white py-2 px-3 rounded-md transition-colors">New Analysis</button>
                  </nav>
             </div>
             <div id="auth-actions">
                 <button id="login-signup-btn" class="btn-primary py-2 px-5 rounded-lg">Login / Sign Up</button>
-                <button id="logout-btn" class="hidden bg-rose-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-rose-600 transition">Logout</button>
+                <button id="logout-btn" class="hidden bg-rose-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-rose-700 transition">Logout</button>
             </div>
         </header>
 
         <div id="initial-loading-screen" class="text-center py-40">
-            <h1 class="text-5xl font-bold text-white mb-4" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.2);">Aura</h1>
-            <p class="text-lg text-white/80">Initializing Your Relationship Intelligence Platform...</p>
+            <h1 class="text-5xl font-bold text-white mb-4" style="text-shadow: 0 0 15px rgba(99, 102, 241, 0.5);">Aura</h1>
+            <p class="text-lg text-gray-400">Initializing Your Relationship Intelligence Platform...</p>
         </div>
 
         <main id="main-content" class="hidden">
             <div id="personal-dashboard-screen" class="screen main-panel p-8 rounded-xl shadow-xl">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-3xl font-bold text-slate-900">Your Report History</h2>
+                    <h2 class="text-3xl font-bold text-white">Your Report History</h2>
                     <button id="go-to-analysis-btn" class="btn-primary py-2 px-5 rounded-lg">New Analysis +</button>
                 </div>
                 <div id="reports-list-container" class="space-y-3">
@@ -121,18 +160,18 @@
             </div>
 
             <div id="new-analysis-screen" class="screen main-panel p-8 rounded-xl shadow-xl">
-                 <h2 class="text-3xl font-bold text-slate-900 mb-6">Create a New Analysis</h2>
+                 <h2 class="text-3xl font-bold text-white mb-6">Create a New Analysis</h2>
                  
                  <div class="mb-6">
-                    <label for="narrative" class="block text-lg font-medium mb-2">Your Narrative</label>
-                    <textarea id="narrative" rows="6" placeholder="Describe the situation, the people involved, or the dynamic of the problem/relationship..." class="w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"></textarea>
+                    <label for="narrative" class="block text-lg font-medium mb-2 text-gray-200">Your Narrative</label>
+                    <textarea id="narrative" rows="6" placeholder="Describe the situation, the people involved, or the dynamic of the problem/relationship..." class="w-full p-4 border rounded-lg transition text-gray-200"></textarea>
                  </div>
                  
                  <div class="mb-8">
-                    <label for="media-upload" class="block text-lg font-medium mb-2">Upload Media (Optional)</label>
+                    <label for="media-upload" class="block text-lg font-medium mb-2 text-gray-200">Upload Media (Optional)</label>
                     <input type="file" id="media-upload" class="hidden" accept="image/*" multiple>
-                    <label for="media-upload" id="media-upload-label" class="flex justify-center w-full h-32 px-4 transition bg-white border-2 border-slate-300 rounded-lg appearance-none cursor-pointer">
-                        <span id="upload-prompt" class="flex items-center space-x-2 text-slate-500">
+                    <label for="media-upload" id="media-upload-label" class="flex justify-center w-full h-32 px-4 transition rounded-lg appearance-none cursor-pointer">
+                        <span id="upload-prompt" class="flex items-center space-x-2 text-gray-400">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-4-4V6a4 4 0 014-4h4a4 4 0 014 4v6m-4-2h4m-4 6H7a4 4 0 00-4 4v1a2 2 0 002 2h10a2 2 0 002-2v-1a4 4 0 00-4-4H7z" /></svg>
                             <span class="font-medium">Drop images here or click to upload</span>
                         </span>
@@ -141,19 +180,19 @@
                  </div>
 
                  <div class="mb-8">
-                    <label for="core-question" class="block text-lg font-medium mb-2">The Core Question</label>
-                    <input type="text" id="core-question" placeholder="e.g., 'What are our main communication challenges?'" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition">
+                    <label for="core-question" class="block text-lg font-medium mb-2 text-gray-200">The Core Question</label>
+                    <input type="text" id="core-question" placeholder="e.g., 'What are our main communication challenges?'" class="w-full p-3 border rounded-lg transition text-gray-200">
                  </div>
 
                  <div class="mb-8">
-                    <label class="block text-lg font-medium mb-3">What to Analyze</label>
+                    <label class="block text-lg font-medium mb-3 text-gray-200">What to Analyze</label>
                     <div id="report-details-options" class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        <label class="chiclet-checkbox"><input type="checkbox" name="report_detail" value="communication_patterns" class="sr-only"><span class="block text-center w-full p-3 rounded-md border border-slate-300 cursor-pointer font-semibold text-slate-700 hover:border-blue-500">Communication</span></label>
-                        <label class="chiclet-checkbox"><input type="checkbox" name="report_detail" value="emotional_tone" class="sr-only"><span class="block text-center w-full p-3 rounded-md border border-slate-300 cursor-pointer font-semibold text-slate-700 hover:border-blue-500">Emotional Tone</span></label>
-                        <label class="chiclet-checkbox"><input type="checkbox" name="report_detail" value="key_themes" class="sr-only"><span class="block text-center w-full p-3 rounded-md border border-slate-300 cursor-pointer font-semibold text-slate-700 hover:border-blue-500">Key Themes</span></label>
-                        <label class="chiclet-checkbox"><input type="checkbox" name="report_detail" value="conflict_resolution" class="sr-only"><span class="block text-center w-full p-3 rounded-md border border-slate-300 cursor-pointer font-semibold text-slate-700 hover:border-blue-500">Conflict Style</span></label>
-                        <label class="chiclet-checkbox"><input type="checkbox" name="report_detail" value="relationship_health" class="sr-only"><span class="block text-center w-full p-3 rounded-md border border-slate-300 cursor-pointer font-semibold text-slate-700 hover:border-blue-500">Health Score</span></label>
-                        <label class="chiclet-checkbox"><input type="checkbox" name="report_detail" value="actionable_advice" class="sr-only" checked><span class="block text-center w-full p-3 rounded-md border border-slate-300 cursor-pointer font-semibold text-slate-700 hover:border-blue-500">Actionable Advice</span></label>
+                        <label class="chiclet-checkbox"><input type="checkbox" name="report_detail" value="communication_patterns" class="sr-only"><span class="block text-center w-full p-3 rounded-md border border-gray-600 bg-gray-800 cursor-pointer font-semibold text-gray-300 hover:border-brand-primary">Communication</span></label>
+                        <label class="chiclet-checkbox"><input type="checkbox" name="report_detail" value="emotional_tone" class="sr-only"><span class="block text-center w-full p-3 rounded-md border border-gray-600 bg-gray-800 cursor-pointer font-semibold text-gray-300 hover:border-brand-primary">Emotional Tone</span></label>
+                        <label class="chiclet-checkbox"><input type="checkbox" name="report_detail" value="key_themes" class="sr-only"><span class="block text-center w-full p-3 rounded-md border border-gray-600 bg-gray-800 cursor-pointer font-semibold text-gray-300 hover:border-brand-primary">Key Themes</span></label>
+                        <label class="chiclet-checkbox"><input type="checkbox" name="report_detail" value="conflict_resolution" class="sr-only"><span class="block text-center w-full p-3 rounded-md border border-gray-600 bg-gray-800 cursor-pointer font-semibold text-gray-300 hover:border-brand-primary">Conflict Style</span></label>
+                        <label class="chiclet-checkbox"><input type="checkbox" name="report_detail" value="relationship_health" class="sr-only"><span class="block text-center w-full p-3 rounded-md border border-gray-600 bg-gray-800 cursor-pointer font-semibold text-gray-300 hover:border-brand-primary">Health Score</span></label>
+                        <label class="chiclet-checkbox"><input type="checkbox" name="report_detail" value="actionable_advice" class="sr-only" checked><span class="block text-center w-full p-3 rounded-md border border-gray-600 bg-gray-800 cursor-pointer font-semibold text-gray-300 hover:border-brand-primary">Actionable Advice</span></label>
                     </div>
                  </div>
                  <button type="button" id="analyze-btn" class="w-full btn-primary py-4 rounded-lg flex items-center justify-center text-lg">
@@ -163,42 +202,42 @@
             </div>
 
             <div id="report-display-screen" class="screen main-panel p-8 rounded-xl shadow-xl">
-                 <div id="upgrade-cta-container" class="hidden bg-amber-100 border-l-4 border-amber-500 text-amber-800 p-4 mb-6 rounded-lg">
+                 <div id="upgrade-cta-container" class="hidden bg-indigo-900/50 border-l-4 border-brand-secondary text-gray-200 p-4 mb-6 rounded-lg">
                      <p class="font-bold">This is a temporary analysis.</p>
-                     <p>To save this report and get increasingly personalized insights, <a href="#" id="upgrade-link" class="underline font-semibold hover:text-amber-900">create a free account</a>.</p>
+                     <p>To save this report and get increasingly personalized insights, <a href="#" id="upgrade-link" class="underline font-semibold hover:text-white">create a free account</a>.</p>
                  </div>
                  <div class="flex justify-between items-start mb-6">
-                    <h2 id="report-title" class="text-3xl font-bold text-slate-900">Your Analysis Report</h2>
+                    <h2 id="report-title" class="text-3xl font-bold text-white">Your Analysis Report</h2>
                     <button id="download-report-btn" class="btn-secondary py-2 px-4 rounded-lg font-semibold transition-colors flex-shrink-0">Download</button>
                  </div>
-                 <div id="report-content-container" class="prose max-w-none prose-slate prose-h3:font-bold prose-h3:text-slate-800"></div>
+                 <div id="report-content-container" class="prose prose-invert max-w-none prose-slate prose-h3:font-bold prose-h3:text-white"></div>
             </div>
         </main>
     </div>
 
-    <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full hidden modal">
+    <div id="auth-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm overflow-y-auto h-full w-full hidden modal">
         <div class="relative top-20 mx-auto p-8 border w-full max-w-md shadow-lg rounded-xl main-panel">
-            <button id="close-modal-btn" class="absolute top-0 right-0 mt-4 mr-4 text-slate-400 hover:text-slate-800 text-3xl font-bold">&times;</button>
+            <button id="close-modal-btn" class="absolute top-0 right-0 mt-4 mr-4 text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
             <div class="mt-3">
-                <div class="flex border-b border-slate-300 mb-6">
-                    <button id="modal-show-login-btn" class="flex-1 pb-3 font-semibold text-lg nav-active">Login</button>
-                    <button id="modal-show-signup-btn" class="flex-1 pb-3 font-semibold text-lg text-slate-500">Sign Up</button>
+                <div class="flex border-b border-gray-700 mb-6">
+                    <button id="modal-show-login-btn" class="flex-1 pb-3 font-semibold text-lg nav-active text-white">Login</button>
+                    <button id="modal-show-signup-btn" class="flex-1 pb-3 font-semibold text-lg text-gray-400">Sign Up</button>
                 </div>
                 <div id="modal-login-form-container">
                     <form id="login-form" class="space-y-6">
-                        <div><label for="login-email" class="block text-sm font-medium text-slate-700">Email</label><input type="email" id="login-email" required class="mt-1 block w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"></div>
-                        <div><label for="login-password" class="block text-sm font-medium text-slate-700">Password</label><input type="password" id="login-password" required class="mt-1 block w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"></div>
+                        <div><label for="login-email" class="block text-sm font-medium text-gray-300">Email</label><input type="email" id="login-email" required class="mt-1 block w-full p-3 border rounded-lg transition"></div>
+                        <div><label for="login-password" class="block text-sm font-medium text-gray-300">Password</label><input type="password" id="login-password" required class="mt-1 block w-full p-3 border rounded-lg transition"></div>
                         <button type="submit" class="w-full btn-primary py-3 rounded-lg text-lg">Login</button>
                     </form>
                 </div>
                 <div id="modal-signup-form-container" class="hidden">
                     <form id="signup-form" class="space-y-6">
-                        <div><label for="signup-email" class="block text-sm font-medium text-slate-700">Email</label><input type="email" id="signup-email" required class="mt-1 block w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"></div>
-                        <div><label for="signup-password" class="block text-sm font-medium text-slate-700">Password</label><input type="password" id="signup-password" required class="mt-1 block w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"></div>
+                        <div><label for="signup-email" class="block text-sm font-medium text-gray-300">Email</label><input type="email" id="signup-email" required class="mt-1 block w-full p-3 border rounded-lg transition"></div>
+                        <div><label for="signup-password" class="block text-sm font-medium text-gray-300">Password</label><input type="password" id="signup-password" required class="mt-1 block w-full p-3 border rounded-lg transition"></div>
                         <button type="submit" class="w-full btn-primary py-3 rounded-lg text-lg">Create Account</button>
                     </form>
                 </div>
-                <p id="auth-error" class="text-rose-500 text-sm mt-4 text-center hidden"></p>
+                <p id="auth-error" class="text-rose-400 text-sm mt-4 text-center hidden"></p>
             </div>
         </div>
     </div>
@@ -217,7 +256,6 @@
             appId: "1:388382191448:web:16b533aa82c66251281c2d"
         };
         
-        // MODIFICATION: URL updated with your live backend service address.
         const API_BASE_URL = "https://aura-backend-51f1.onrender.com";
 
         // --- 2. INITIALIZATION ---
@@ -332,7 +370,7 @@
             const user = auth.currentUser;
             if (!user) return;
             
-            reportsListContainer.innerHTML = '<p class="text-slate-500 text-center mt-8">Loading reports...</p>';
+            reportsListContainer.innerHTML = '<p class="text-gray-400 text-center mt-8">Loading reports...</p>';
             
             try {
                 const token = await user.getIdToken(true);
@@ -345,28 +383,28 @@
                 const reports = await response.json();
                 
                 if (reports.length === 0) {
-                    reportsListContainer.innerHTML = '<p class="text-slate-500 text-center mt-8">Your saved reports will appear here.</p>';
+                    reportsListContainer.innerHTML = '<p class="text-gray-400 text-center mt-8">Your saved reports will appear here.</p>';
                     return;
                 }
 
                 reportsListContainer.innerHTML = ''; 
                 reports.forEach(report => {
                     const reportEl = document.createElement('div');
-                    reportEl.className = 'report-item cursor-pointer p-4 border-b border-slate-200 flex justify-between items-center';
+                    reportEl.className = 'report-item cursor-pointer p-4 border-l-2 flex justify-between items-center';
                     reportEl.dataset.reportId = report.id;
                     reportEl.innerHTML = `
                         <div>
-                            <p class="font-semibold text-slate-800">${report.title}</p>
-                            <p class="text-sm text-slate-500">${report.created_at}</p>
+                            <p class="font-semibold text-white">${report.title}</p>
+                            <p class="text-sm text-gray-400">${report.created_at}</p>
                         </div>
-                        <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                        <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                     `;
                     reportsListContainer.appendChild(reportEl);
                 });
 
             } catch(error) {
                 console.error("Fetch Reports Error:", error);
-                reportsListContainer.innerHTML = '<p class="text-rose-500 text-center mt-8">Could not load reports. Please try again.</p>';
+                reportsListContainer.innerHTML = '<p class="text-rose-400 text-center mt-8">Could not load reports. Please try again.</p>';
             }
         }
         
@@ -398,7 +436,7 @@
             } catch (error) {
                 console.error("View Report Error:", error);
                 reportTitle.textContent = "Error";
-                reportContentContainer.innerHTML = '<p class="text-rose-500">Could not load the selected report.</p>';
+                reportContentContainer.innerHTML = '<p class="text-rose-400">Could not load the selected report.</p>';
             }
         }
 
