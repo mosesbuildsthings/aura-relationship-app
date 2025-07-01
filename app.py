@@ -96,26 +96,24 @@ def token_required(f):
 @token_required
 def analyze_relationship(uid):
     """
-    Analyzes a user-submitted narrative and optional image using the Gemini API 
+    Analyzes a user-submitted narrative and optional images using the Gemini API 
     and saves the report. Handles multipart/form-data.
     """
-    # Check if the post request has the file part
     if 'narrative' not in request.form or 'core_question' not in request.form:
         return jsonify({"error": "Narrative and core question are required."}), 400
 
     narrative = request.form.get("narrative", "")
     core_question = request.form.get("core_question")
-    # Report details are sent as a JSON string, so we need to parse them.
     report_details_str = request.form.get("report_details", "[]")
     report_details = json.loads(report_details_str)
     
-    image_file = request.files.get('media')
+    # MODIFICATION: Use getlist to handle multiple files
+    image_files = request.files.getlist('media')
 
     if not core_question or not narrative:
         return jsonify({"error": "Narrative and core question are required."}), 400
 
     try:
-        # Use the multimodal model if an image is provided
         model = genai.GenerativeModel("gemini-1.5-flash")
         
         prompt_parts = [
@@ -132,13 +130,16 @@ def analyze_relationship(uid):
             "5.  Do not include `<html>`, `<head>`, or `<body>` tags. Only provide the inner content for a div."
         ]
         
-        if image_file:
-            # Open the image file and add it to the prompt
-            img = Image.open(image_file.stream)
-            prompt_parts.append("\n**Image Analysis:** Analyze the attached image in the context of the user's narrative and question.")
-            prompt_parts.append(img)
+        # MODIFICATION: Loop through uploaded files and add them to the prompt
+        if image_files and image_files[0].filename:
+            prompt_parts.append("\n**Image Analysis:** Analyze the attached images in the context of the user's narrative and question.")
+            for image_file in image_files:
+                try:
+                    img = Image.open(image_file.stream)
+                    prompt_parts.append(img)
+                except Exception as e:
+                    print(f"Warning: Could not process an image file: {e}")
 
-        final_prompt = "\n".join(prompt_parts)
 
         response = model.generate_content(prompt_parts)
         html_report = response.text
@@ -225,5 +226,5 @@ def get_report(uid, report_id):
 if __name__ == "__main__":
     # Use debug=False for production. Gunicorn will be used by Render.
     app.run(
-        host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=False
+        host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=True # Set debug=True for development
     )
