@@ -22,14 +22,19 @@ from dotenv import load_dotenv
 from PIL import Image
 
 # --- 1. CORE APPLICATION SETUP ---
-load_dotenv()  # Load environment variables from .env for local development
+# Load environment variables from a .env file for local development.
+# In production (e.g., on Render), these will be set in the dashboard.
+load_dotenv()
 app = Flask(__name__)
-CORS(app) # Configure CORS
+# Configure Cross-Origin Resource Sharing (CORS) to allow the frontend
+# to communicate with this backend.
+CORS(app)
 
 # --- 2. SECURE CONFIGURATION & INITIALIZATION ---
 db = None
 try:
-    # Service account key is loaded securely from an environment variable
+    # The service account key is loaded securely from an environment variable.
+    # This avoids hardcoding sensitive credentials in the source code.
     service_account_json_str = os.environ.get("FIREBASE_SERVICE_ACCOUNT_JSON")
     if not service_account_json_str:
         raise ValueError(
@@ -39,7 +44,7 @@ try:
     service_account_info = json.loads(service_account_json_str)
     cred = credentials.Certificate(service_account_info)
 
-    # Prevents re-initializing the app on hot reloads
+    # This check prevents re-initializing the app on hot reloads during development.
     if not firebase_admin._apps:
         firebase_admin.initialize_app(cred)
 
@@ -52,7 +57,7 @@ except Exception as e:
     print(f"CRITICAL ERROR: Failed to initialize Firebase Admin SDK: {e}")
 
 try:
-    # Gemini API key is loaded from an environment variable
+    # The Gemini API key is also loaded from a secure environment variable.
     gemini_api_key = os.environ.get("GOOGLE_API_KEY")
     if not gemini_api_key:
         raise ValueError("CRITICAL: GOOGLE_API_KEY environment variable is not set.")
@@ -70,6 +75,7 @@ def token_required(f):
     def decorated_function(*args, **kwargs):
         """Verifies the Firebase ID token from the Authorization header."""
         token = None
+        # The token is expected in the 'Authorization' header as 'Bearer <token>'.
         if "Authorization" in request.headers and request.headers[
             "Authorization"
         ].startswith("Bearer "):
@@ -79,7 +85,9 @@ def token_required(f):
             return jsonify({"error": "Authentication token is missing!"}), 401
 
         try:
+            # Use Firebase Admin SDK to verify the token's validity.
             decoded_token = auth.verify_id_token(token)
+            # Pass the user's unique ID (uid) to the protected route.
             kwargs["uid"] = decoded_token["uid"]
         except auth.InvalidIdTokenError:
             return jsonify({"error": "Invalid authentication token!"}), 403
@@ -107,15 +115,17 @@ def analyze_relationship(uid):
     report_details_str = request.form.get("report_details", "[]")
     report_details = json.loads(report_details_str)
     
-    # MODIFICATION: Use getlist to handle multiple files
+    # Use getlist() to correctly handle multiple file uploads with the same field name.
     image_files = request.files.getlist('media')
 
     if not core_question or not narrative:
         return jsonify({"error": "Narrative and core question are required."}), 400
 
     try:
+        # Initialize the Gemini model.
         model = genai.GenerativeModel("gemini-1.5-flash")
         
+        # Construct the prompt for the Gemini API, providing clear instructions.
         prompt_parts = [
             "As an expert relationship analyst AI named Aura, generate a comprehensive report in HTML format.",
             f"The user wants to understand the following situation.",
@@ -130,20 +140,23 @@ def analyze_relationship(uid):
             "5.  Do not include `<html>`, `<head>`, or `<body>` tags. Only provide the inner content for a div."
         ]
         
-        # MODIFICATION: Loop through uploaded files and add them to the prompt
+        # Loop through uploaded files and add them to the prompt parts for multi-modal analysis.
         if image_files and image_files[0].filename:
             prompt_parts.append("\n**Image Analysis:** Analyze the attached images in the context of the user's narrative and question.")
             for image_file in image_files:
                 try:
+                    # Use PIL to open the image from the file stream.
                     img = Image.open(image_file.stream)
                     prompt_parts.append(img)
                 except Exception as e:
                     print(f"Warning: Could not process an image file: {e}")
 
 
+        # Generate the report content using the Gemini API.
         response = model.generate_content(prompt_parts)
         html_report = response.text
 
+        # Prepare the data to be saved to Firestore.
         report_data = {
             "uid": uid,
             "title": core_question,
@@ -153,9 +166,11 @@ def analyze_relationship(uid):
             "created_at": firestore.SERVER_TIMESTAMP,
         }
 
+        # Save the new report to a 'reports' subcollection under the user's document.
         user_reports_ref = db.collection("users").document(uid).collection("reports")
         user_reports_ref.add(report_data)
 
+        # Return the generated HTML report to the frontend.
         return jsonify({"html_report": html_report})
 
     except google_exceptions.GoogleAPICallError as e:
@@ -174,6 +189,7 @@ def get_reports(uid):
     """
     try:
         user_reports_ref = db.collection("users").document(uid).collection("reports")
+        # Order reports by creation date, newest first.
         query = user_reports_ref.order_by(
             "created_at", direction=firestore.Query.DESCENDING
         )
@@ -187,6 +203,7 @@ def get_reports(uid):
                 {
                     "id": report.id,
                     "title": report_data.get("title"),
+                    # Format the timestamp for display on the frontend.
                     "created_at": creation_time.strftime("%B %d, %Y")
                     if creation_time
                     else None,
@@ -225,6 +242,7 @@ def get_report(uid, report_id):
 # --- 5. SERVER EXECUTION ---
 if __name__ == "__main__":
     # Use debug=False for production. Gunicorn will be used by Render.
+    # The port is read from the environment, defaulting to 10000 for services like Render.
     app.run(
-        host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=True # Set debug=True for development
+        host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=True
     )
