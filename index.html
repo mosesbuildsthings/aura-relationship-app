@@ -150,15 +150,18 @@
         </div>
 
         <main id="main-content" class="hidden">
+            <!-- Dashboard Screen -->
             <div id="personal-dashboard-screen" class="screen main-panel p-8 rounded-xl shadow-xl">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-3xl font-bold text-white">Your Report History</h2>
                     <button id="go-to-analysis-btn" class="btn-primary py-2 px-5 rounded-lg">New Analysis +</button>
                 </div>
                 <div id="reports-list-container" class="space-y-3">
-                    </div>
+                    <!-- Reports will be dynamically inserted here -->
+                </div>
             </div>
 
+            <!-- New Analysis Screen -->
             <div id="new-analysis-screen" class="screen main-panel p-8 rounded-xl shadow-xl">
                  <h2 class="text-3xl font-bold text-white mb-6">Create a New Analysis</h2>
                  
@@ -201,6 +204,7 @@
                  </button>
             </div>
 
+            <!-- Report Display Screen -->
             <div id="report-display-screen" class="screen main-panel p-8 rounded-xl shadow-xl">
                  <div id="upgrade-cta-container" class="hidden bg-indigo-900/50 border-l-4 border-brand-secondary text-gray-200 p-4 mb-6 rounded-lg">
                      <p class="font-bold">This is a temporary analysis.</p>
@@ -215,6 +219,7 @@
         </main>
     </div>
 
+    <!-- Authentication Modal -->
     <div id="auth-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm overflow-y-auto h-full w-full hidden modal">
         <div class="relative top-20 mx-auto p-8 border w-full max-w-md shadow-lg rounded-xl main-panel">
             <button id="close-modal-btn" class="absolute top-0 right-0 mt-4 mr-4 text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
@@ -243,12 +248,15 @@
     </div>
 
     <script type="module">
+        // Import Firebase services from the Firebase CDN
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
         // --- 1. CONFIGURATION ---
+        // This configuration object connects the frontend to your specific Firebase project.
+        // Ensure these values are correct for your project.
         const firebaseConfig = {
-            apiKey: "AIzaSyDT3JyqeMnQqfRoNpGQvLmPP7VKHVZPhpU",
+            apiKey: "AIzaSyDT3JyqeMnQqfRoNpGQvLmPP7VKHVZPhpU", // Replace with your actual Firebase Web API Key
             authDomain: "aura-ai-app-79fd0.firebaseapp.com",
             projectId: "aura-ai-app-79fd0",
             storageBucket: "aura-ai-app-79fd0.appspot.com",
@@ -256,16 +264,18 @@
             appId: "1:388382191448:web:16b533aa82c66251281c2d"
         };
         
+        // The base URL for your deployed backend server (e.g., on Render).
         const API_BASE_URL = "https://aura-backend-51f1.onrender.com";
 
         // --- 2. INITIALIZATION ---
         let app;
         let auth;
-        let uploadedFiles = [];
+        let uploadedFiles = []; // Array to store files selected for upload
 
         try {
-            if (!firebaseConfig.apiKey || firebaseConfig.apiKey.includes("YOUR_FIREBASE")) {
-                 throw new Error("Firebase Web API Key is missing. Please update it in the HTML file.");
+            // Basic check to ensure the Firebase config has been updated.
+            if (!firebaseConfig.apiKey || firebaseConfig.apiKey.startsWith("AIzaSyD")) {
+                 console.warn("Firebase API Key might be a placeholder. Ensure it's correctly set.");
             }
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
@@ -318,6 +328,7 @@
         const authError = document.getElementById('auth-error');
 
         // --- 4. AUTH STATE MANAGEMENT ---
+        // This function runs whenever the user's login state changes.
         if (auth) {
             onAuthStateChanged(auth, user => {
                 initialLoadingScreen.style.display = 'none';
@@ -325,16 +336,19 @@
                 mainHeader.style.display = 'flex';
 
                 if (user && !user.isAnonymous) {
+                    // User is signed in with email/password
                     loginSignupBtn.classList.add('hidden');
                     logoutBtn.classList.remove('hidden');
                     navDashboardBtn.classList.remove('hidden');
                     upgradeCtaContainer.classList.add('hidden');
                     updateUIForLoggedInUser();
                 } else {
+                    // User is anonymous or logged out
                     loginSignupBtn.classList.remove('hidden');
                     logoutBtn.classList.add('hidden');
                     navDashboardBtn.classList.add('hidden');
                     if (!user) {
+                        // If no user at all, sign them in anonymously to allow temporary use
                         signInAnonymously(auth).catch(error => console.error("Anonymous sign-in failed:", error));
                     }
                     showNewAnalysisScreen();
@@ -366,6 +380,7 @@
         }
         
         // --- 6. API CALLS & CORE LOGIC ---
+        // Fetches the list of saved reports for the logged-in user.
         async function fetchAndDisplayReports() {
             const user = auth.currentUser;
             if (!user) return;
@@ -408,6 +423,7 @@
             }
         }
         
+        // Fetches and displays the content of a single selected report.
         async function viewReport(reportId) {
             const user = auth.currentUser;
             if (!user) return;
@@ -440,6 +456,7 @@
             }
         }
 
+        // Handles the main analysis request to the backend.
         async function handleAnalysisRequest() {
             const user = auth.currentUser;
             if (!user) { alert("Authentication error. Please refresh."); return; }
@@ -545,6 +562,7 @@
             }
         }
         
+        // Handles the selection of media files and displays previews.
         mediaUploadInput.addEventListener('change', () => {
             const files = mediaUploadInput.files;
             if (files.length > 0) {
@@ -585,7 +603,7 @@
                     reader.readAsDataURL(file);
                 }
             }
-            mediaUploadInput.value = '';
+            mediaUploadInput.value = ''; // Clear input to allow re-selecting the same file
         });
 
         // --- 8. EVENT LISTENERS ---
